@@ -19,4 +19,4 @@ class DataExtractor():
 
 extractor = DataExtractor()
 
-print(extractor.read_rds_table('legacy_users'))
+print(extractor.read_rds_table('legacy_users')['country_code'])

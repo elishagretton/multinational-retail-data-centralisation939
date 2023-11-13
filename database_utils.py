@@ -30,6 +30,10 @@ class DatabaseConnector():
         db_table_list = inspector.get_table_names()
         return db_table_list
 
+    def upload_to_db(self, clean_dataframe, table_name):
+        db_to_sql = clean_dataframe.to_sql(table_name, self.db_engine, if_exists='replace', index=False)
+        return db_to_sql
+
 
 
 
