@@ -1,5 +1,8 @@
+from data_extraction import *
+from data_cleaning import *
 import yaml
 from sqlalchemy import create_engine, inspect
+
 
 
 class DatabaseConnector():
@@ -38,13 +41,4 @@ class DatabaseConnector():
 
 
     
-instance = DatabaseConnector()
-
-# Step 2: Print dictionary of credentials.
-# print(instance.read_db_creds())
-
-# Step 3: Create init_db_engine method, return sqlalchemy DB engine.
-#instance.init_db_engine()
-
-# Step 4: Create method list_db_tables.
-#print(instance.list_db_tables())
+connector = DatabaseConnector()

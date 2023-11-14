@@ -8,14 +8,16 @@ class DataCleaning():
     """
 
     def __init__(self, table_name):
-        self.connector = DatabaseConnector()
-        self.extractor = DataExtractor()
-        self.df = self.extractor.read_rds_table(table_name)
+        self.db_connector = DatabaseConnector()
+        self.db_extractor = DataExtractor
+        self.df = self.db_extractor.read_rds_table(table_name)
         
     def clean_user_data(self):
-        # TO DO: double check this one
-        # Drop NULL values and duplicates
-        self.df = self.df.dropna().drop_duplicates()
+        # Drop null values in place
+        self.df.dropna(inplace=True)
+
+        # Drop duplicates in place
+        self.df.drop_duplicates(inplace=True)
 
         # Change columns to correct types
         self.df.first_name = self.df.first_name.astype('string')
@@ -24,29 +26,25 @@ class DataCleaning():
         self.df.company = self.df.company.astype('string')
         self.df.email_address = self.df.email_address.astype('string') # TO DO: would like to format email
         self.df.country = self.df.country.astype('string') # TO DO: check for spelling errors, get unique vals
+        self.df.address = self.df.address.astype('string') 
+        self.df.join_date = pd.to_datetime(self.df.join_date, format='mixed', errors='coerce')
+        self.df.user_uuid = self.df.user_uuid.astype('string')
 
         # Converting country_code to string, changing GGB to GB, and setting incorrect codes to NaN
         self.df.country_code = self.df.country_code.astype('string')
         self.df.country_code = self.df.country_code.replace('GGB', 'GB')
         self.df.loc[self.df.country_code.str.len() > 2, 'country_code'] = pd.NaT
 
-        # Checking incorrect country codes have been removed
-        # incorrect_country_codes = self.df[self.df['country_code'].str.len() > 2]
-        # print(incorrect_country_codes)
+        # Cleaning phone numbers 
+        regex = '^(\(?\+?[0-9]*\)?)?[0-9_\- \(\)]*$'
+            # Remove (0) in phone number
+        self.df.loc[:,'phone_number'] = self.df.phone_number.str.replace('(0)', '', regex=False)
+            # Remove all non-digits except when starts with + from phone numbers (to keep country codes)
+        self.df.phone_number = self.df.phone_number.apply(lambda x: ''.join(char for char in x if char.isdigit() or (char == '+' and x.startswith('+'))))
+        self.df.phone_number = self.df.phone_number.astype('string')
 
-        # TO DO: Converting phone number to correct regex expression
-        # Getting rid of incorrect numbers, not integers
+        return self.df
 
-        # TO DO: other columns
-        #self.df.info()
 
-        # NULL values
-
-        # Errors with dates
-
-        # Incorrectly typed values
-
-        # Rows filled with wrong information
-
-example = DataCleaning('legacy_users')
+example = DataCleaning(db_connector=DatabaseConnector(), db_extractor=DataExtractor(db_connector=), table_name='legacy_users')
 print(example.clean_user_data())
