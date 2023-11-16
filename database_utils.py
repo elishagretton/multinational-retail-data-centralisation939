@@ -34,4 +34,3 @@ class DatabaseConnector():
     def upload_to_db(self, clean_dataframe, sql_dataframe):
         db_to_sql = clean_dataframe.to_sql(sql_dataframe, self.db_engine, if_exists='replace', index=False)
         return db_to_sql
-#instance = DatabaseConnector(file_path='db_creds.yaml')

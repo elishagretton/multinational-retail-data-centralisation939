@@ -3,6 +3,9 @@ import pandas as pd
 import sqlalchemy
 import tabula
 import requests
+import boto3
+from io import StringIO
+
 
 header = {'x-api-key' : 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}
 
@@ -49,6 +52,31 @@ class DataExtractor():
         df = pd.DataFrame(all_store_data)
         return df
     
+    def extract_from_s3(self, s3_address):
+        # Check valid s3 address
+        if not s3_address.startswith('s3://'):
+            raise ValueError("Invalid S3 address format. It should start with 's3://'")
+
+        # Remove the 's3://' prefix and set access key id and key
+        s3_address = s3_address[5:]
+
+        # Split the remaining address into bucket name and file key
+        parts = s3_address.split('/')
+        if len(parts) < 2:
+            raise ValueError("Invalid S3 address format. It should contain both bucket name and file key")
+
+        bucket_name = parts[0]
+        file_key = '/'.join(parts[1:])
+
+        # Download the file from S3
+        s3 = boto3.client('s3')
+        response = s3.get_object(Bucket=bucket_name, Key=file_key)
+        data = response['Body']
+
+        # Convert the CSV data to a Pandas DataFrame and remove duplicate index column.
+        df = pd.read_csv(data, index_col='Unnamed: 0').reset_index(drop=True)
+        return df
+    
 
 
 #number_of_stores_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'
@@ -59,3 +87,6 @@ class DataExtractor():
 
 #print(all_stores_df.head())
 #all_stores_df = extractor.retrieve_stores_data(store_endpoint, number_of_stores, header)
+
+#products_df = DataExtractor().extract_from_s3('s3://data-handling-public/products.csv')
+#print(products_df.head())

@@ -2,7 +2,14 @@ from data_extraction import DataExtractor
 from database_utils import DatabaseConnector
 import pandas as pd
 import re
+import numpy as np
+import uuid
 
+
+# TO DO: 
+# (1) sort inputs
+# (2) drop duplicates and null - check and ask
+# (3) to dos in each function
 class DataCleaning():
     """
     This class contains method to clean data from sources.
@@ -136,26 +143,131 @@ class DataCleaning():
         api_data.continent = api_data.continent.mask(api_data.continent.str.contains(r'\d|NULL'))
 
         return api_data
+    
+    def convert_product_weights(self, products_df):
+        for index, entry in enumerate(products_df['weight']):
+            if entry is not None and isinstance(entry, str):
+                match = re.match(r'([\d.]+)\s*x?\s*([\d.]*)\s*([a-zA-Z]+)', entry)
+                if match:
+                    numeric_part1, numeric_part2, unit = match.groups()
+                    numeric_part1 = float(numeric_part1)
+                    if numeric_part2 == '' and unit.lower() == 'g':
+                        products_df.at[index, 'weight'] = numeric_part1 / 1000
+                    elif unit.lower() == 'ml':
+                        products_df.at[index, 'weight'] = numeric_part1 / 1000
+                    elif unit.lower() == 'kg':
+                        products_df.at[index, 'weight'] = numeric_part1
+                    elif numeric_part2 != '' and unit.lower() == 'g':
+                        numeric_part2 = float(numeric_part2)
+                        products_df.at[index, 'weight'] = numeric_part1 * numeric_part2 / 1000
+                    else: 
+                        products_df.at[index, 'weight'] = np.nan 
+                else:
+                    products_df.at[0, 'weight'] = np.nan  # Handle invalid or missing entries
         
-#instance = DatabaseConnector('sales_data_creds.yaml')
-#instance.upload_to_db(pdf_data, 'dim_card_details')
+        # Change object type to float type now data is cleaned.
+        products_df.weight = pd.to_numeric(products_df.weight, errors='coerce')
 
-# (1): Get stores pd dataframe
-header = {'x-api-key' : 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}
+        return products_df
 
-number_of_stores_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'
-extractor = DataExtractor()
-number_of_stores = extractor.list_number_of_stores(number_of_stores_endpoint,header)
+    def clean_products_data(self, products_df):
 
-store_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/'
+        # (1) Set product_name to string type
+        products_df.product_name = products_df.product_name.astype('string')
+        
+        # (2) Remove £ from product_price and set to float type
+        products_df.product_price = products_df.product_price.str.replace('£', '')
+        products_df.product_price = pd.to_numeric(products_df.product_price, errors='coerce')
 
-all_stores_df = extractor.retrieve_stores_data(store_endpoint, number_of_stores, header)
+        # (3) Use convert_product_weights function
+        products_df = self.convert_product_weights(products_df)
 
-# (2) Cleaning PDF data below        
-example = DataCleaning(all_stores_df)
-cleaned_df = example.called_clean_store_data()
+        # (4) Set incorrect categories to nan and set to string
+        allowed_categories = ['toys-and-games', 'sports-and-leisure', 'pets', 'homeware', 'health-and-beauty',
+                            'food-and-drink', 'diy']
+        products_df.loc[~products_df['category'].isin(allowed_categories), 'category'] = np.nan
+        products_df.category = products_df.category.astype('string')
 
-instance = DatabaseConnector(file_path='sales_data_creds.yaml')
-instance.upload_to_db(cleaned_df,'dim_store_details')
+        # (5) Set all invalid EANs to nan (if not 13 digit number) and set to string
+        products_df.EAN = products_df.EAN.where(products_df.EAN.str.match(r'^\d{13}$'), np.nan)
+        products_df.EAN = products_df.EAN.astype('string')
+
+        # (6) Set date_added to date time
+        products_df.date_added = pd.to_datetime(products_df.date_added, format='mixed', errors='coerce')
+
+        # TO FIX (7) : Set all invalid UUIDs to nan and set type
+        # products_df.uuid= products_df.uuid.apply(lambda x: x if pd.notna(x) and uuid.UUID(x) else np.nan)
+
+        # (8): Set incorrect removed statuses to nan and set to string
+        # TO DO : SPELLING MISTAKE, CHECK
+        removed_statuses = ['Still_avaliable', 'Removed']
+        products_df.loc[~products_df['removed'].isin(removed_statuses), 'removed'] = np.nan
+        products_df.removed = products_df.removed.astype('string')
+
+        return products_df
+    
+    def clean_orders_data(self, orders_data):
+        # Remove unnecessary columns
+        orders_data = orders_data.drop(columns=['level_0', 'first_name', 'last_name', '1'])
+
+        # (1) date_uuid
+        pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+        orders_data.loc[~orders_data['date_uuid'].str.match(pattern), 'date_uuid'] = np.nan
+        orders_data.date_uuid = orders_data.date_uuid.astype('string')
+
+        # (2) user_uuid
+        orders_data.loc[~orders_data['user_uuid'].str.match(pattern), 'user_uuid'] = np.nan
+        orders_data.user_uuid = orders_data.user_uuid.astype('string')
+
+        # (3) card_number
+        orders_data.card_number = pd.to_numeric(orders_data.card_number, errors='coerce', downcast='integer')
+
+        # (4) store_code - already clean
+        pattern = r'^.{2,3}-.{8}$'
+        orders_data.loc[~orders_data['store_code'].str.match(pattern), 'store_code'] = np.nan
+        orders_data.store_code = orders_data.store_code.astype('string')
+
+        # (5) product_code
+        pattern = r'^.{2}-.*$'
+        orders_data.loc[~orders_data['product_code'].str.match(pattern), 'product_code'] = np.nan
+        orders_data.product_code = orders_data.product_code.astype('string')
+
+        # (6) product_quantity - clean already
+        orders_data.product_quantity = pd.to_numeric(orders_data.product_quantity, errors='coerce', downcast='integer')
+
+        return orders_data
+    def clean_date_data(self, date_details_data):
+        # Drop NULL and duplicates
+        date_details_data.dropna(inplace=True)
+        date_details_data.drop_duplicates(inplace=True)
+
+        # (1) timestamp
+        date_details_data.timestamp = pd.to_datetime(date_details_data.timestamp, format='%H:%M:%S', errors='coerce').dt.time
+
+        # (2) month: Filter out incorrect data and set to float type
+        pattern = r'^\d{1,2}$'
+        date_details_data.loc[~date_details_data['month'].str.match(pattern), 'month'] = np.nan 
+        date_details_data.month = pd.to_numeric(date_details_data.month, errors='coerce')
+
+        # (3) year
+        pattern = r'^\d{4}$'
+        date_details_data.loc[~date_details_data['year'].str.match(pattern), 'year'] = np.nan 
+        date_details_data.year = pd.to_numeric(date_details_data.year, errors='coerce')
+
+        # (4) day
+        pattern = r'^\d{1,2}$'
+        date_details_data.loc[~date_details_data['day'].str.match(pattern), 'day'] = np.nan 
+        date_details_data.month = pd.to_numeric(date_details_data.day, errors='coerce')
 
 
+        # (5) time_period
+        time_periods = ['Evening', 'Morning', 'Midday', 'Late_Hours']
+        date_details_data.loc[~date_details_data['time_period'].isin(time_periods), 'time_period'] = np.nan
+        date_details_data.time_period = date_details_data.time_period.astype('string')
+
+        # (6) date_uuid
+        pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+        date_details_data.loc[~date_details_data['date_uuid'].str.match(pattern), 'date_uuid'] = np.nan
+        date_details_data.date_uuid = date_details_data.date_uuid.astype('string')
+
+        return date_details_data
