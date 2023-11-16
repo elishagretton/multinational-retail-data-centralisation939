@@ -77,16 +77,3 @@ class DataExtractor():
         df = pd.read_csv(data, index_col='Unnamed: 0').reset_index(drop=True)
         return df
     
-
-
-#number_of_stores_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'
-#extractor = DataExtractor()
-
-#number_of_stores = extractor.list_number_of_stores(number_of_stores_endpoint,header)
-#store_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/'
-
-#print(all_stores_df.head())
-#all_stores_df = extractor.retrieve_stores_data(store_endpoint, number_of_stores, header)
-
-#products_df = DataExtractor().extract_from_s3('s3://data-handling-public/products.csv')
-#print(products_df.head())
