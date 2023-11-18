@@ -1,6 +1,6 @@
 # Multinational Retail Data Centralisation
 
-# Table of Contents
+## Table of Contents
 
 1. [Introduction](#introduction)
 2. [Installation instructions](#installation-instructions)

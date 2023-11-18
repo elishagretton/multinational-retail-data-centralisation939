@@ -1,10 +1,10 @@
-from database_utils import DatabaseConnector
+from io import StringIO
+from src.database_utils import DatabaseConnector
+import boto3
 import pandas as pd
+import requests
 import sqlalchemy
 import tabula
-import requests
-import boto3
-from io import StringIO
 
 
 header = {'x-api-key' : 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}
@@ -15,6 +15,11 @@ class DataExtractor():
     e.g. CSV fies, API, S3 bucket.
     """
     def __init__(self):
+        """
+        Initializes the DataExtractor instance.
+
+        
+        """
         self.db_connector = DatabaseConnector('db_creds.yaml')
         self.db_engine = self.db_connector.db_engine
         self.db_creds = self.db_connector.db_creds
