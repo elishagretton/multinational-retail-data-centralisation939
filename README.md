@@ -5,8 +5,8 @@
 1. [Introduction](#introduction)
 2. [Installation instructions](#installation-instructions)
 3. [Usage instructions](#usage-instructions)
-4. [File structure of the project](#file-structure-of-the-project]
-5. [License Information] (#license-information)
+4. [File structure](#file-structure)
+5. [License Information](#license-information)
 
 ## Introduction
 
@@ -17,16 +17,19 @@ Currently, their sales data is spread across many different data sources making 
 In this project, sales data is collected and extracted from multiple sources. The data is then cleaned and uploaded to a SQL database, where the data can be managed effectively to provide data-driven insights on the company.
 
 With this project, we learn:
-(1) How to connect and extract data from multiple sources e.g. a csv file, a PDF, an S3 Bucket, and an API.
-(2) How to clean data effectively by considering NULL values, duplicates, valid data types, incorrectly typed values, and wrong information.
-(3) How to organise code effectively into suitable classes to connect, extract, and clean data.
-(4) This list will continue growing as I complete the project!
+
+1. How to connect and extract data from multiple sources e.g. a csv file, a PDF, an S3 Bucket, and an API.
+2. How to clean data effectively by considering NULL values, duplicates, valid data types, incorrectly typed values, and wrong information.
+3. How to organise code effectively into suitable classes to connect, extract, and clean data.
+4. This list will continue growing as I complete the project!
 
 ## Installation instructions
 
+Needs updating.
 ## Usage instructions
+Needs updating.
 
-## File structure of the project
+## File structure
 
 The project is structured as follows:
 
@@ -47,6 +50,8 @@ The project is structured as follows:
 - **.gitignore**: Specifies files and directories to ignore in version control.
 
 - **README.md**: Documentation file with essential information.
+
+- **LICENSE.txt**: File containing information on MIT License used in this project.
 
 ## License Information
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
