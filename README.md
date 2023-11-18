@@ -26,7 +26,9 @@ With this project, we learn:
 ## Installation instructions
 
 Needs updating.
+
 ## Usage instructions
+
 Needs updating.
 
 ## File structure
@@ -54,4 +56,5 @@ The project is structured as follows:
 - **LICENSE.txt**: File containing information on MIT License used in this project.
 
 ## License Information
+
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
