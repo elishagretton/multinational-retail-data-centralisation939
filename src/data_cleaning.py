@@ -15,201 +15,249 @@ class DataCleaning():
     This class contains method to clean data from sources.
     """
 
-    def __init__(self, uncleaned_df):
-        self.db_connector = DatabaseConnector('db_creds.yaml')
+    def __init__(self):
+        self.db_connector = DatabaseConnector('../db_creds.yaml')
         self.db_extractor = DataExtractor()
-        self.uncleaned_df = uncleaned_df
         
-    def clean_user_data(self):
-        df = self.db_extractor.read_rds_table(self.uncleaned_df)
+    def clean_user_data(self, user_data):
+        """
+        Cleans user_data Dataframe and returns clean dataframe.
 
-        # Drop null values in place
-        df.dropna(inplace=True)
+        Parameters:
+        - user_data (pd.DataFrame): user_data DataFrame to be cleaned.
 
-        # Drop duplicates in place
-        df.drop_duplicates(inplace=True)
+        Returns:
+        - user_data (pd.DataFrame): updated cleaned user_data DataFrame
+        """
+        # Check if user_data is a pandas DataFrame
+        if not isinstance(user_data, pd.DataFrame):
+            raise ValueError("Input 'user_data' must be a pandas DataFrame.")
 
-        # Change columns to correct types
-        df.first_name = df.first_name.astype('string')
-        df.last_name = df.first_name.astype('string')
-        df.date_of_birth = pd.to_datetime(df.date_of_birth, format='mixed', errors='coerce')
-        df.company = df.company.astype('string')
-        df.email_address = df.email_address.astype('string') # TO DO: would like to format email
-        df.country = df.country.astype('string') # TO DO: check for spelling errors, get unique vals
-        df.address = df.address.astype('string') 
-        df.join_date = pd.to_datetime(self.df.join_date, format='mixed', errors='coerce')
-        df.user_uuid = df.user_uuid.astype('string')
+        # Drop null values in place (none removed)
+        user_data.dropna(inplace=True)
 
-        # Converting country_code to string, changing GGB to GB, and setting incorrect codes to NaN
-        df.country_code = df.country_code.astype('string')
-        df.country_code = df.country_code.replace('GGB', 'GB')
-        df.loc[df.country_code.str.len() > 2, 'country_code'] = pd.NaT
-
-        # Cleaning phone numbers 
-        regex = '^(\(?\+?[0-9]*\)?)?[0-9_\- \(\)]*$'
-            # Remove (0) in phone number
-        df.loc[:,'phone_number'] = df.phone_number.str.replace('(0)', '', regex=False)
-            # Remove all non-digits except when starts with + from phone numbers (to keep country codes)
-        df.phone_number = df.phone_number.apply(lambda x: ''.join(char for char in x if char.isdigit() or (char == '+' and x.startswith('+'))))
-        df.phone_number = df.phone_number.astype('string')
-
-        return df
-    
-    def clean_card_data(self):
-        # TO DO: IF UNCLEANED_DATA NOT A PDF THEN ERROR
-
-        # Retrieve pdf_data
-        pdf_data = self.db_extractor.retrieve_pdf_data(self.uncleaned_df)
-
-        # Drop null values in place
-        pdf_data.dropna(inplace=True)
-
-        # Drop duplicates in place
-        pdf_data.drop_duplicates(inplace=True)
-
-        # Setting columns to correct data types
-        pdf_data.card_number = pdf_data.card_number.astype('string')
-        pdf_data.expiry_date = pd.to_datetime(pdf_data.expiry_date, format='%m/%y', errors='coerce')
-        pdf_data.card_provider = pdf_data.card_provider.astype('string')
-        pdf_data.date_payment_confirmed = pd.to_datetime(pdf_data.date_payment_confirmed, format='mixed', errors='coerce')
-
-        return pdf_data
-
-    def called_clean_store_data(self):
-        # Set api_data to input
-        api_data = self.uncleaned_df
+        # Drop duplicates in place (20 duplicates found)
+        user_data.drop_duplicates(inplace=True)
 
         # Clean each column
-        # (1) INDEX: Remove index column (duplicate)
-        api_data = api_data.drop(columns='index')
+        # (1) first_name: Set to string type
+        user_data.first_name = user_data.first_name.astype('string')
+       
+        # (2) last_name: Set to string type
+        user_data.last_name = user_data.last_name.astype('string')
 
-        # (2) ADDRESS: Clean address column
-        # Define a regular expression pattern for a basic address
-        address_pattern = re.compile(r'\b\d+\s+\S+[^,]*,\s*\S+\b')
-        # Apply the regex pattern using lambda function
-        api_data.address= api_data.address.apply(lambda x: x if address_pattern.search(x) else None)
-        # Set to string type
-        api_data.address = api_data.address.astype('string')
-
-        # (3) LONGITUDE: Set longitude to float
-        api_data.longitude = pd.to_numeric(api_data.longitude, errors='coerce')
+        # (3) date_of_birth: Set to datetime
+        user_data.date_of_birth = pd.to_datetime(user_data.date_of_birth, format='mixed', errors='coerce')
         
-        # (4) LAT: Remove lat column (duplicate of latitude column)
-        api_data = api_data.drop(columns='lat')
-
-        # (5) LOCALITY: Clean locality column
-        # Remove non-alphabetical and NULL values to keep relevant names
-        api_data.locality= api_data.locality.apply(lambda x: x if pd.notnull(x) and x.isalpha() else pd.NaT)
-        # Set to string type
-        api_data.locality = api_data.locality.astype('string')
-
-        # (6) STORE_CODE: Set store_code to string type
-    # TO DO: is there a regex expression? looks like LA-jfkjkfej, but need to check.
-        api_data.store_code = api_data.store_code.astype('string')
-
-        # (6) STAFF_NUMBER: Clean staff_numbers
-        # Getting rid of non-integers and numbers with spelling mistakes
-        api_data.staff_numbers = api_data.staff_numbers.mask(~api_data.staff_numbers.str.match('^\d+$'))
-        # Set to integer type
-        api_data.staff_numbers = pd.to_numeric(api_data.staff_numbers, errors='coerce', downcast='integer')
-
-        # (7) OPENING_DATE: Set to datetime and remove errors
-        api_data.opening_date = pd.to_datetime(api_data.opening_date, format='mixed', errors='coerce')
+        # (4) company: Set to string type
+        user_data.company = user_data.company.astype('string')
         
-        # (8) STORE_TYPE: Clean store_type
-        # List desired stores
-        desired_stores = ['Web Portal', 'Local', 'Super Store', 'Mall Kiosk', 'Outlet']
-        # Filter out errors in store_type if not in desired_stores
-        api_data.store_type = api_data.store_type.apply(lambda x: x if x in desired_stores else pd.NaT)
-        # Set to string type
-        api_data.store_type = api_data.store_type.astype('string')
+        # (5) email_address: Remove emails in incorrect format and set to string type
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        user_data.loc[~user_data['email_address'].str.match(email_pattern), 'email_address'] = np.nan
+        user_data.email_address = user_data.email_address.astype('string')
+        
+        # (6) country: Remove incorrect countries (containing digits and 'NULL') and set to string type
+        user_data.country = user_data.country .replace(['NULL', r'.*\d.*'], np.nan, regex=True)
+        user_data.country = user_data.country.astype('string') 
 
-        # (9) LATITUDE: Set latitude to float and remove errors
-        api_data.latitude = pd.to_numeric(api_data.latitude, errors='coerce')
+        # (7) country_code: Replace 'GGB' to 'GB' and remove incorrect country_codes, set to string type
+        user_data.country_code = user_data.country_code.replace('GGB', 'GB')
+        user_data.loc[user_data.country_code.str.len() > 2, 'country_code'] = np.nan
+        user_data.country_code = user_data.country_code.astype('string')
 
-        # (10) COUNTRY_CODE: Clean country_code column
-        # Set to string
-        api_data.country_code = api_data.country_code.astype('string')
-        # Remove strings longer 2, set to NaN
-        api_data.loc[api_data.country_code.str.len() > 2, 'country_code'] = pd.NaT
+        # (8) phone_number: Remove '(0)', remove punctuation except when starts with '+', set to string type
+        user_data.loc[:,'phone_number'] = user_data.phone_number.str.replace('(0)', '', regex=False)
+        user_data.phone_number = user_data.phone_number.apply(lambda x: ''.join(char for char in x if char.isdigit() or (char == '+' and x.startswith('+'))))
+        user_data.phone_number = user_data.phone_number.astype('string')
 
-        # (11) CONTINENT: Clean continent column
-        # Set to string type
-        api_data['continent'] = api_data['continent'].astype('string')
-        # Replace spelling mistakes
-        api_data.continent = api_data.continent.replace('eeEurope', 'Europe')
-        api_data.continent = api_data.continent.replace('eeAmerica', 'America')
-        # Remove strings containing numbers and 'NULL', set to NaN
-        api_data.continent = api_data.continent.mask(api_data.continent.str.contains(r'\d|NULL'))
+        # (9) join_date: Set to datetime
+        user_data.join_date = pd.to_datetime(user_data.join_date, format='mixed', errors='coerce')
 
-        return api_data
+        # (10) user_uuid: Remove user_uuid in incorrect format, set to string type
+        uuid_pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+        user_data.loc[~user_data['user_uuid'].str.match(uuid_pattern), 'user_uuid'] = np.nan
+        user_data.user_uuid = user_data.user_uuid.astype('string')
+
+        return user_data
     
-    def convert_product_weights(self, products_df):
-        for index, entry in enumerate(products_df['weight']):
+    def clean_card_data(self, card_data):
+        """
+        Cleans card_data Dataframe and returns clean dataframe.
+
+        Parameters:
+        - card_data (pd.DataFrame): card_data DataFrame to be cleaned.
+
+        Returns:
+        - card_data (pd.DataFrame): updated cleaned card_data DataFrame
+        """
+        # Check if card_data is a pandas DataFrame
+        if not isinstance(card_data, pd.DataFrame):
+            raise ValueError("Input 'card_data' must be a pandas DataFrame.")
+
+        # Drop null values in place (none removed)
+        card_data.dropna(inplace=True)
+
+        # Drop duplicates in place (10 detected)
+        card_data.drop_duplicates(inplace=True)
+
+        # Clean each column
+        # (1) card_number
+        # Set to string type
+        card_data.card_number = card_data.card_number.astype('string')
+        # Filter values that are not solely digits (invalid card numbers)
+        incorrect_card_numbers = card_data[~card_data['card_number'].str.match(r'^\d+$', na=False)]
+        # Set these to nan
+        card_data.loc[incorrect_card_numbers.index, 'card_number'] = np.nan
+
+        # (2) expiry_date: Set to datetime
+        card_data.expiry_date = pd.to_datetime(card_data.expiry_date, format='%m/%y', errors='coerce')
+
+        # (3) card_provider: Remove invalid card providers and set to string type
+        card_providers = ['Diners Club / Carte Blanche', 'American Express', 'JCB 16 digit',
+       'JCB 15 digit', 'Maestro', 'Mastercard', 'Discover',
+       'VISA 19 digit', 'VISA 16 digit', 'VISA 13 digit']
+        card_data.card_provider = card_data.card_provider.apply(lambda x: x if x in card_providers else np.nan)
+        card_data.card_provider = card_data.card_provider.astype('string')
+
+        # (4) date_payment_confirmed: Set to datetime
+        card_data.date_payment_confirmed = pd.to_datetime(card_data.date_payment_confirmed, format='mixed', errors='coerce')
+        
+        return card_data
+
+    def clean_store_data(self, store_data):
+        # Check if store_data is a pandas DataFrame
+        if not isinstance(store_data, pd.DataFrame):
+            raise ValueError("Input 'store_data' must be a pandas DataFrame.")
+
+        # Drop duplicates in place (2 detected)
+        store_data.drop_duplicates(inplace=True)
+
+        # Clean each column
+        # (1)+(4) index, lat: Remove columns
+        store_data = store_data.drop(columns=['index', 'lat'])
+
+        # (2) address: Remove entries that do not contain '\n'
+        store_data = store_data[store_data['address'].str.contains('\n', na=False)]
+
+        # (3) longitude: Set longitude to float
+        store_data.longitude = pd.to_numeric(store_data.longitude, errors='coerce')
+
+        # (5) locality: Set locality to string, no incorrect/missing values
+        store_data.locality = store_data.locality.astype('string')
+
+        # (6) store_code: Set to correct format and set to string type
+        store_data = store_data[store_data['store_code'].str.match(r'^.{2}-.{8}$', na=False)]
+        store_data.store_code = store_data.store_code.astype('string')
+
+        # (6) staff_numbers: Replace typos with correct value
+        store_data['staff_numbers'] = store_data['staff_numbers'].replace({'J78': '78', '30e': '30', '80R': '80', 'A97': '97', '3n9': '39'})
+
+        # (7) opening_data: Set to datetime
+        store_data.opening_date = pd.to_datetime(store_data.opening_date, format='mixed', errors='coerce')
+        
+        # (8) store_type: Remove invalid store_types and set to string type
+        store_types = ['Web Portal', 'Local', 'Super Store', 'Mall Kiosk', 'Outlet']
+        store_data.store_type = store_data.store_type.apply(lambda x: x if x in store_types else np.nan)
+        store_data.store_type = store_data.store_type.astype('string')
+
+        # (9) latitude: Set latitude to float and remove errors
+        store_data.latitude = pd.to_numeric(store_data.latitude, errors='coerce')
+
+        # (10) country_code: Remove invalid country codes
+        store_data.country_code = store_data.country_code.astype('string')
+        store_data.loc[store_data.country_code.str.len() > 2, 'country_code'] = np.nan
+
+        # (11) continent: Remove typos and set to string
+        store_data['continent'] = store_data['continent'].astype('string')
+        store_data.continent = store_data.continent.replace('eeEurope', 'Europe')
+        store_data.continent = store_data.continent.replace('eeAmerica', 'America')
+
+        return store_data
+    
+    def convert_product_weights(self, products_data):
+        for index, entry in enumerate(products_data['weight']):
             if entry is not None and isinstance(entry, str):
                 match = re.match(r'([\d.]+)\s*x?\s*([\d.]*)\s*([a-zA-Z]+)', entry)
                 if match:
                     numeric_part1, numeric_part2, unit = match.groups()
                     numeric_part1 = float(numeric_part1)
                     if numeric_part2 == '' and unit.lower() == 'g':
-                        products_df.at[index, 'weight'] = numeric_part1 / 1000
+                        products_data.at[index, 'weight'] = numeric_part1 / 1000
                     elif unit.lower() == 'ml':
-                        products_df.at[index, 'weight'] = numeric_part1 / 1000
+                        products_data.at[index, 'weight'] = numeric_part1 / 1000
                     elif unit.lower() == 'kg':
-                        products_df.at[index, 'weight'] = numeric_part1
+                        products_data.at[index, 'weight'] = numeric_part1
                     elif numeric_part2 != '' and unit.lower() == 'g':
                         numeric_part2 = float(numeric_part2)
-                        products_df.at[index, 'weight'] = numeric_part1 * numeric_part2 / 1000
+                        products_data.at[index, 'weight'] = numeric_part1 * numeric_part2 / 1000
                     else: 
-                        products_df.at[index, 'weight'] = np.nan 
+                        products_data.at[index, 'weight'] = np.nan 
                 else:
-                    products_df.at[0, 'weight'] = np.nan  # Handle invalid or missing entries
+                    products_data.at[0, 'weight'] = np.nan  # Handle invalid or missing entries
         
         # Change object type to float type now data is cleaned.
-        products_df.weight = pd.to_numeric(products_df.weight, errors='coerce')
+        products_data.weight = pd.to_numeric(products_data.weight, errors='coerce')
 
-        return products_df
+        return products_data
 
-    def clean_products_data(self, products_df):
+    def clean_products_data(self, products_data):
+        # Check if products_data is a pandas DataFrame
+        if not isinstance(products_data, pd.DataFrame):
+            raise ValueError("Input 'products_data' must be a pandas DataFrame.")
 
-        # (1) Set product_name to string type
-        products_df.product_name = products_df.product_name.astype('string')
+        # Drop NULL values (9 detected)
+        products_data.dropna(inplace=True)
+
+        # Drop duplicates (0 detected)
+        products_data.drop_duplicates(inplace=True)
+
+        # Clean columns
+        # (1) product_name: Set to string type
+        products_data.product_name = products_data.product_name.astype('string')
         
-        # (2) Remove £ from product_price and set to float type
-        products_df.product_price = products_df.product_price.str.replace('£', '')
-        products_df.product_price = pd.to_numeric(products_df.product_price, errors='coerce')
+        # (2) product_price: Remove £ from product_price and set to float type
+        products_data.product_price = products_data.product_price.str.replace('£', '')
+        products_data.product_price = pd.to_numeric(products_data.product_price, errors='coerce')
 
-        # (3) Use convert_product_weights function
-        products_df = self.convert_product_weights(products_df)
+        # (3) weights: Use convert_product_weights function
+        products_data = self.convert_product_weights(products_data)
 
-        # (4) Set incorrect categories to nan and set to string
-        allowed_categories = ['toys-and-games', 'sports-and-leisure', 'pets', 'homeware', 'health-and-beauty',
+        # (4) category: Set incorrect categories to nan and set to string
+        categories = ['toys-and-games', 'sports-and-leisure', 'pets', 'homeware', 'health-and-beauty',
                             'food-and-drink', 'diy']
-        products_df.loc[~products_df['category'].isin(allowed_categories), 'category'] = np.nan
-        products_df.category = products_df.category.astype('string')
+        products_data.loc[~products_data['category'].isin(categories), 'category'] = np.nan
+        products_data.category = products_data.category.astype('string')
 
-        # (5) Set all invalid EANs to nan (if not 13 digit number) and set to string
-        products_df.EAN = products_df.EAN.where(products_df.EAN.str.match(r'^\d{13}$'), np.nan)
-        products_df.EAN = products_df.EAN.astype('string')
+        # (5) EAN: Set all invalid EANs to nan (if not 13 digit number) and set to string
+        products_data.EAN = products_data.EAN.where(products_data.EAN.str.match(r'^\d{13}$'), np.nan)
+        products_data.EAN = products_data.EAN.astype('string')
 
         # (6) Set date_added to date time
-        products_df.date_added = pd.to_datetime(products_df.date_added, format='mixed', errors='coerce')
+        products_data.date_added = pd.to_datetime(products_data.date_added, format='mixed', errors='coerce')
 
         # TO FIX (7) : Set all invalid UUIDs to nan and set type
-        # products_df.uuid= products_df.uuid.apply(lambda x: x if pd.notna(x) and uuid.UUID(x) else np.nan)
+        uuid_pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+        products_data.loc[~products_data['uuid'].str.match(uuid_pattern), 'uuid'] = np.nan
+        products_data.uuid = products_data.uuid.astype('string')
 
-        # (8): Set incorrect removed statuses to nan and set to string
-        # TO DO : SPELLING MISTAKE, CHECK
-        removed_statuses = ['Still_avaliable', 'Removed']
-        products_df.loc[~products_df['removed'].isin(removed_statuses), 'removed'] = np.nan
-        products_df.removed = products_df.removed.astype('string')
+        # (8): removed: Fix spelling mistake, remove incorrect removed statuses, and set to string
+        products_data.country_code = products_data.country_code.replace('Still_avaliable', 'Still_available')
+        removed_statuses = ['Still_available', 'Removed']
+        products_data.loc[~products_data['removed'].isin(removed_statuses), 'removed'] = np.nan
+        products_data.removed = products_data.removed.astype('string')
 
-        return products_df
+        return products_data
     
     def clean_orders_data(self, orders_data):
+        # Check if orders_data is a pandas DataFrame
+        if not isinstance(orders_data, pd.DataFrame):
+            raise ValueError("Input 'orders_data' must be a pandas DataFrame.")
+
         # Remove unnecessary columns
         orders_data = orders_data.drop(columns=['level_0', 'first_name', 'last_name', '1'])
 
+        
         # (1) date_uuid
         pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
         orders_data.loc[~orders_data['date_uuid'].str.match(pattern), 'date_uuid'] = np.nan

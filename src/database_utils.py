@@ -69,6 +69,3 @@ class DatabaseConnector():
         """
         db_to_sql = clean_dataframe.to_sql(table_name, self.db_engine, if_exists='replace', index=False)
         return db_to_sql
-
-instance = DatabaseConnector('../db_creds.yaml')
-instance.read_db_creds()

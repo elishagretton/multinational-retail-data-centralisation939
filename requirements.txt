@@ -1,0 +1,10 @@
+# requirements.txt
+
+# Add other project dependencies here
+other-library==version
+
+# PDF extraction library
+tabula-py==2.3.0
+
+# YAML parsing library
+PyYAML==5.4.1

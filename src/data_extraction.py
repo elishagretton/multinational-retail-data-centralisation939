@@ -20,7 +20,7 @@ class DataExtractor():
 
         
         """
-        self.db_connector = DatabaseConnector('db_creds.yaml')
+        self.db_connector = DatabaseConnector('../db_creds.yaml')
         self.db_engine = self.db_connector.db_engine
         self.db_creds = self.db_connector.db_creds
 
@@ -29,15 +29,34 @@ class DataExtractor():
         return table_data
     
     def retrieve_pdf_data(self, pdf_link):
+        """
+        Retrieves pdf file from S3 Bucket and returns a pandas DataFrame.
+
+        Parameters:
+        - pdf-link (string): Link to pdf in S3 Bucket.
+
+        Returns: 
+        - pdf_data (pandas DataFrame)
+        """
         pdf_pages = tabula.read_pdf(pdf_link, pages='all')
-        pdf_df = pd.concat(pdf_pages, ignore_index=True)        
-        return pdf_df
+        pdf_data = pd.concat(pdf_pages, ignore_index=True)        
+        return pdf_data
     
     def list_number_of_stores(self, number_of_stores_endpoint, header):
+        """
+        Returns the number of stores in the data from API endpoint.
+        
+        Parameters:
+        - number_of_stores_endpoint (str): endpoint URL for API
+        - header (dict): credentials to connect to API
+        
+        Returns:
+        - number_of_stores (int): number of stores in data
+        """
         response = requests.get(number_of_stores_endpoint, headers=header)
         if response.status_code == 200:
             data = response.json()
-            df = pd.json_normalize(data)  # Use json_normalize to flatten nested structures if present
+            df = pd.json_normalize(data) 
             number_of_stores = df.number_stores[0]
             print(f'Number of stores: {number_of_stores}')
             return number_of_stores
@@ -54,10 +73,13 @@ class DataExtractor():
                 all_store_data.append(store_data)
             else:
                 print(f"Failed to fetch data for store {store_number}. Status code: {response.status_code}")
-        df = pd.DataFrame(all_store_data)
-        return df
+        store_data = pd.DataFrame(all_store_data)
+        return store_data
     
     def extract_from_s3(self, s3_address):
+        """
+        
+        """
         # Check valid s3 address
         if not s3_address.startswith('s3://'):
             raise ValueError("Invalid S3 address format. It should start with 's3://'")
@@ -79,6 +101,6 @@ class DataExtractor():
         data = response['Body']
 
         # Convert the CSV data to a Pandas DataFrame and remove duplicate index column.
-        df = pd.read_csv(data, index_col='Unnamed: 0').reset_index(drop=True)
-        return df
+        product_data = pd.read_csv(data, index_col='Unnamed: 0').reset_index(drop=True)
+        return product_data
     
