@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import re
 
-
 class DataCleaning():
     """
     This class contains methods to clean data from various sources.
@@ -16,7 +15,36 @@ class DataCleaning():
         """
         self.db_connector = DatabaseConnector('../db_creds.yaml')
         self.db_extractor = DataExtractor()
-        
+
+    def check_pd_dataframe(self,data):
+        """
+        Checks if the input is a pandas DataFrame.
+
+        Parameters:
+        - data (pd.DataFrame): Input data to be checked.
+
+        Raises:
+        - ValueError: If the input data is not a pandas DataFrame.
+        """
+        if not isinstance(data, pd.DataFrame):
+            raise ValueError("Input data must be a pandas DataFrame.")  
+    
+    def clean_uuids(self, data, column_name):
+        """
+        Removes incorrect entries with incorrect uuid format and returns cleaned column.
+
+        Parameters:
+        - data (pd.DataFrame): Input data to be checked.
+        - column_name (str): Column containing uncleaned uuid data.
+
+        Returns:
+        - data[column_name] (pd.Series): Cleaned data column with valid uuids or nan values.
+        """
+        uuid_pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+        data.loc[~data[column_name].str.match(uuid_pattern), column_name] = np.nan
+        data[column_name] = data[column_name].astype('string')
+        return data[column_name]
+
     def clean_user_data(self, user_data):
         """
         Cleans the provided user_data DataFrame and returns the cleaned DataFrame.
@@ -27,9 +55,7 @@ class DataCleaning():
         Returns:
         - user_data (pd.DataFrame): Cleaned user_data DataFrame.
         """
-        # Check if user_data is a pandas DataFrame
-        if not isinstance(user_data, pd.DataFrame):
-            raise ValueError("Input 'user_data' must be a pandas DataFrame.")
+        self.check_pd_dataframe(user_data)
 
         # Drop null values in place (none removed)
         user_data.dropna(inplace=True)
@@ -73,9 +99,7 @@ class DataCleaning():
         user_data.join_date = pd.to_datetime(user_data.join_date, format='mixed', errors='coerce')
 
         # (10) user_uuid: Remove user_uuid in incorrect format, set to string type
-        uuid_pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-        user_data.loc[~user_data['user_uuid'].str.match(uuid_pattern), 'user_uuid'] = np.nan
-        user_data.user_uuid = user_data.user_uuid.astype('string')
+        user_data.user_uuid = self.clean_uuids(user_data, 'user_uuid')
 
         return user_data
     
@@ -89,9 +113,7 @@ class DataCleaning():
         Returns:
         - card_data (pd.DataFrame): Cleaned card_data DataFrame.
         """
-        # Check if card_data is a pandas DataFrame
-        if not isinstance(card_data, pd.DataFrame):
-            raise ValueError("Input 'card_data' must be a pandas DataFrame.")
+        self.check_pd_dataframe(card_data)
 
         # Drop null values in place (none removed)
         card_data.dropna(inplace=True)
@@ -133,9 +155,7 @@ class DataCleaning():
         Returns:
         - store_data (pd.DataFrame): Cleaned store_data DataFrame.
         """
-        # Check if store_data is a pandas DataFrame
-        if not isinstance(store_data, pd.DataFrame):
-            raise ValueError("Input 'store_data' must be a pandas DataFrame.")
+        self.check_pd_dataframe(store_data)
 
         # Drop duplicates in place (2 detected)
         store_data.drop_duplicates(inplace=True)
@@ -227,9 +247,7 @@ class DataCleaning():
         Returns:
         - products_data (pd.DataFrame): Cleaned products_data DataFrame.
         """
-        # Check if products_data is a pandas DataFrame
-        if not isinstance(products_data, pd.DataFrame):
-            raise ValueError("Input 'products_data' must be a pandas DataFrame.")
+        self.check_pd_dataframe(products_data)
 
         # Drop NULL values (9 detected)
         products_data.dropna(inplace=True)
@@ -261,10 +279,8 @@ class DataCleaning():
         # (6) Set date_added to date time
         products_data.date_added = pd.to_datetime(products_data.date_added, format='mixed', errors='coerce')
 
-        # (7) : Set all invalid UUIDs to nan and set type
-        uuid_pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-        products_data.loc[~products_data['uuid'].str.match(uuid_pattern), 'uuid'] = np.nan
-        products_data.uuid = products_data.uuid.astype('string')
+        # (7) uuid : Set all invalid UUIDs to nan and set type
+        products_data.uuid = self.clean_uuids(products_data, 'uuid')
 
         # (8): removed: Fix spelling mistake, remove incorrect removed statuses, and set to string
         products_data.country_code = products_data.country_code.replace('Still_avaliable', 'Still_available')
@@ -284,9 +300,7 @@ class DataCleaning():
         Returns:
         - orders_data (pd.DataFrame): Cleaned orders_data DataFrame.
         """
-        # Check if orders_data is a pandas DataFrame
-        if not isinstance(orders_data, pd.DataFrame):
-            raise ValueError("Input 'orders_data' must be a pandas DataFrame.")
+        self.check_pd_dataframe(orders_data)
 
         # Remove unnecessary columns
         orders_data = orders_data.drop(columns=['level_0', 'first_name', 'last_name', '1'])
@@ -296,13 +310,10 @@ class DataCleaning():
         orders_data.dropna(inplace=True)
 
         # (1) date_uuid: Remove invalid date_uuid and set to string
-        uuid_pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-        orders_data.loc[~orders_data['date_uuid'].str.match(uuid_pattern), 'date_uuid'] = np.nan
-        orders_data.date_uuid = orders_data.date_uuid.astype('string')
+        orders_data.date_uuid = self.clean_uuids(orders_data, 'date_uuid')
 
         # (2) user_uuid: Remove invalid user_uuid and set to string
-        orders_data.loc[~orders_data['user_uuid'].str.match(uuid_pattern), 'user_uuid'] = np.nan
-        orders_data.user_uuid = orders_data.user_uuid.astype('string')
+        orders_data.user_uuid = self.clean_uuids(orders_data, 'user_uuid')
 
         # (3) card_number: Set to integer
         orders_data.card_number = pd.to_numeric(orders_data.card_number, errors='coerce', downcast='integer')
@@ -331,9 +342,7 @@ class DataCleaning():
         Returns:
         - date_events_data (pd.DataFrame): Cleaned date_events_data DataFrame.
         """
-        # Check if date_events_data is a pandas DataFrame
-        if not isinstance(date_events_data, pd.DataFrame):
-            raise ValueError("Input 'date_events_data' must be a pandas DataFrame.")
+        self.check_pd_dataframe(date_events_data)
 
         # Drop NULL (0 detected) and duplicates(14 detected)
         date_events_data.dropna(inplace=True)
@@ -353,10 +362,9 @@ class DataCleaning():
         date_events_data.year = pd.to_numeric(date_events_data.year, errors='coerce')
 
         # (4) day: Filter out incorrect days and set to float type
-        pattern = r'^\d{1,2}$'
-        date_events_data.loc[~date_events_data['day'].str.match(pattern), 'day'] = np.nan 
+        day_pattern = r'^\d{1,2}$'
+        date_events_data.loc[~date_events_data['day'].str.match(day_pattern), 'day'] = np.nan 
         date_events_data.month = pd.to_numeric(date_events_data.day, errors='coerce')
-
 
         # (5) time_period: Filter out incorrect time_periods and set to string
         time_periods = ['Evening', 'Morning', 'Midday', 'Late_Hours']
@@ -364,9 +372,7 @@ class DataCleaning():
         date_events_data.time_period = date_events_data.time_period.astype('string')
 
         # (6) date_uuid: Remove incorrect date_uuids and set to string type
-        pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-        date_events_data.loc[~date_events_data['date_uuid'].str.match(pattern), 'date_uuid'] = np.nan
-        date_events_data.date_uuid = date_events_data.date_uuid.astype('string')
+        date_events_data.date_uuid = self.clean_uuids(date_events_data, 'date_uuid')
 
         return date_events_data
     
