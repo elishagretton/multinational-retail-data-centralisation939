@@ -1,33 +1,31 @@
 from src.data_extraction import DataExtractor
 from src.database_utils import DatabaseConnector
 import pandas as pd
-import re
 import numpy as np
-import uuid
+import re
 
 
-# TO DO: 
-# (1) sort inputs
-# (2) drop duplicates and null - check and ask
-# (3) to dos in each function
 class DataCleaning():
     """
-    This class contains method to clean data from sources.
+    This class contains methods to clean data from various sources.
     """
 
     def __init__(self):
+        """
+        Initializes the DataCleaning instance.
+        """
         self.db_connector = DatabaseConnector('../db_creds.yaml')
         self.db_extractor = DataExtractor()
         
     def clean_user_data(self, user_data):
         """
-        Cleans user_data Dataframe and returns clean dataframe.
+        Cleans the provided user_data DataFrame and returns the cleaned DataFrame.
 
         Parameters:
-        - user_data (pd.DataFrame): user_data DataFrame to be cleaned.
+        - user_data (pd.DataFrame): DataFrame containing user data to be cleaned.
 
         Returns:
-        - user_data (pd.DataFrame): updated cleaned user_data DataFrame
+        - user_data (pd.DataFrame): Cleaned user_data DataFrame.
         """
         # Check if user_data is a pandas DataFrame
         if not isinstance(user_data, pd.DataFrame):
@@ -83,13 +81,13 @@ class DataCleaning():
     
     def clean_card_data(self, card_data):
         """
-        Cleans card_data Dataframe and returns clean dataframe.
+        Cleans the provided card_data DataFrame and returns the cleaned DataFrame.
 
         Parameters:
-        - card_data (pd.DataFrame): card_data DataFrame to be cleaned.
+        - card_data (pd.DataFrame): DataFrame containing card data to be cleaned.
 
         Returns:
-        - card_data (pd.DataFrame): updated cleaned card_data DataFrame
+        - card_data (pd.DataFrame): Cleaned card_data DataFrame.
         """
         # Check if card_data is a pandas DataFrame
         if not isinstance(card_data, pd.DataFrame):
@@ -126,6 +124,15 @@ class DataCleaning():
         return card_data
 
     def clean_store_data(self, store_data):
+        """
+        Cleans the provided store_data DataFrame and returns the cleaned DataFrame.
+
+        Parameters:
+        - store_data (pd.DataFrame): DataFrame containing store data to be cleaned.
+
+        Returns:
+        - store_data (pd.DataFrame): Cleaned store_data DataFrame.
+        """
         # Check if store_data is a pandas DataFrame
         if not isinstance(store_data, pd.DataFrame):
             raise ValueError("Input 'store_data' must be a pandas DataFrame.")
@@ -175,7 +182,16 @@ class DataCleaning():
 
         return store_data
     
-    def convert_product_weights(self, products_data):
+    def _convert_product_weights(self, products_data):
+        """
+        Converts product weights in the provided products_data DataFrame to a consistent format.
+
+        Parameters:
+        - products_data (pd.DataFrame): DataFrame containing product data.
+
+        Returns:
+        - products_data (pd.DataFrame): Updated DataFrame with converted product weights.
+        """
         for index, entry in enumerate(products_data['weight']):
             if entry is not None and isinstance(entry, str):
                 match = re.match(r'([\d.]+)\s*x?\s*([\d.]*)\s*([a-zA-Z]+)', entry)
@@ -202,6 +218,15 @@ class DataCleaning():
         return products_data
 
     def clean_products_data(self, products_data):
+        """
+        Cleans the provided products_data DataFrame and returns the cleaned DataFrame.
+
+        Parameters:
+        - products_data (pd.DataFrame): DataFrame containing product data to be cleaned.
+
+        Returns:
+        - products_data (pd.DataFrame): Cleaned products_data DataFrame.
+        """
         # Check if products_data is a pandas DataFrame
         if not isinstance(products_data, pd.DataFrame):
             raise ValueError("Input 'products_data' must be a pandas DataFrame.")
@@ -236,7 +261,7 @@ class DataCleaning():
         # (6) Set date_added to date time
         products_data.date_added = pd.to_datetime(products_data.date_added, format='mixed', errors='coerce')
 
-        # TO FIX (7) : Set all invalid UUIDs to nan and set type
+        # (7) : Set all invalid UUIDs to nan and set type
         uuid_pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
         products_data.loc[~products_data['uuid'].str.match(uuid_pattern), 'uuid'] = np.nan
         products_data.uuid = products_data.uuid.astype('string')
@@ -250,6 +275,15 @@ class DataCleaning():
         return products_data
     
     def clean_orders_data(self, orders_data):
+        """
+        Cleans the provided orders_data DataFrame and returns the cleaned DataFrame.
+
+        Parameters:
+        - orders_data (pd.DataFrame): DataFrame containing order data to be cleaned.
+
+        Returns:
+        - orders_data (pd.DataFrame): Cleaned orders_data DataFrame.
+        """
         # Check if orders_data is a pandas DataFrame
         if not isinstance(orders_data, pd.DataFrame):
             raise ValueError("Input 'orders_data' must be a pandas DataFrame.")
@@ -257,65 +291,84 @@ class DataCleaning():
         # Remove unnecessary columns
         orders_data = orders_data.drop(columns=['level_0', 'first_name', 'last_name', '1'])
 
-        
-        # (1) date_uuid
-        pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-        orders_data.loc[~orders_data['date_uuid'].str.match(pattern), 'date_uuid'] = np.nan
+        # Drop NULL and duplicates in place
+        orders_data.drop_duplicates(inplace=True)
+        orders_data.dropna(inplace=True)
+
+        # (1) date_uuid: Remove invalid date_uuid and set to string
+        uuid_pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+        orders_data.loc[~orders_data['date_uuid'].str.match(uuid_pattern), 'date_uuid'] = np.nan
         orders_data.date_uuid = orders_data.date_uuid.astype('string')
 
-        # (2) user_uuid
-        orders_data.loc[~orders_data['user_uuid'].str.match(pattern), 'user_uuid'] = np.nan
+        # (2) user_uuid: Remove invalid user_uuid and set to string
+        orders_data.loc[~orders_data['user_uuid'].str.match(uuid_pattern), 'user_uuid'] = np.nan
         orders_data.user_uuid = orders_data.user_uuid.astype('string')
 
-        # (3) card_number
+        # (3) card_number: Set to integer
         orders_data.card_number = pd.to_numeric(orders_data.card_number, errors='coerce', downcast='integer')
 
-        # (4) store_code - already clean
-        pattern = r'^.{2,3}-.{8}$'
-        orders_data.loc[~orders_data['store_code'].str.match(pattern), 'store_code'] = np.nan
+        # (4) store_code: Remove invalid store codes and set to string
+        store_code_pattern = r'^.{2,3}-.{8}$'
+        orders_data.loc[~orders_data['store_code'].str.match(store_code_pattern), 'store_code'] = np.nan
         orders_data.store_code = orders_data.store_code.astype('string')
 
-        # (5) product_code
-        pattern = r'^.{2}-.*$'
-        orders_data.loc[~orders_data['product_code'].str.match(pattern), 'product_code'] = np.nan
+        # (5) product_code: Remove invalid product codes and set to string
+        product_code_pattern = r'^.{2}-.*$'
+        orders_data.loc[~orders_data['product_code'].str.match(product_code_pattern), 'product_code'] = np.nan
         orders_data.product_code = orders_data.product_code.astype('string')
 
-        # (6) product_quantity - clean already
+        # (6) product_quantity : Set to integer
         orders_data.product_quantity = pd.to_numeric(orders_data.product_quantity, errors='coerce', downcast='integer')
 
         return orders_data
-    def clean_date_data(self, date_details_data):
-        # Drop NULL and duplicates
-        date_details_data.dropna(inplace=True)
-        date_details_data.drop_duplicates(inplace=True)
+    def clean_date_data(self, date_events_data):
+        """
+        Cleans the provided date_events_data DataFrame and returns the cleaned DataFrame.
 
-        # (1) timestamp
-        date_details_data.timestamp = pd.to_datetime(date_details_data.timestamp, format='%H:%M:%S', errors='coerce').dt.time
+        Parameters:
+        - date_events_data (pd.DataFrame): DataFrame containing date events data to be cleaned.
+
+        Returns:
+        - date_events_data (pd.DataFrame): Cleaned date_events_data DataFrame.
+        """
+        # Check if date_events_data is a pandas DataFrame
+        if not isinstance(date_events_data, pd.DataFrame):
+            raise ValueError("Input 'date_events_data' must be a pandas DataFrame.")
+
+        # Drop NULL (0 detected) and duplicates(14 detected)
+        date_events_data.dropna(inplace=True)
+        date_events_data.drop_duplicates(inplace=True)
+
+        # (1) timestamp: Set to datetime
+        date_events_data.timestamp = pd.to_datetime(date_events_data.timestamp, format='%H:%M:%S', errors='coerce').dt.time
 
         # (2) month: Filter out incorrect data and set to float type
+        month_pattern = r'^\d{1,2}$'
+        date_events_data.loc[~date_events_data['month'].str.match(month_pattern), 'month'] = np.nan 
+        date_events_data.month = pd.to_numeric(date_events_data.month, errors='coerce')
+
+        # (3) year: Filter out incorrect years and set to float type
+        year_pattern = r'^\d{4}$'
+        date_events_data.loc[~date_events_data['year'].str.match(year_pattern), 'year'] = np.nan 
+        date_events_data.year = pd.to_numeric(date_events_data.year, errors='coerce')
+
+        # (4) day: Filter out incorrect days and set to float type
         pattern = r'^\d{1,2}$'
-        date_details_data.loc[~date_details_data['month'].str.match(pattern), 'month'] = np.nan 
-        date_details_data.month = pd.to_numeric(date_details_data.month, errors='coerce')
-
-        # (3) year
-        pattern = r'^\d{4}$'
-        date_details_data.loc[~date_details_data['year'].str.match(pattern), 'year'] = np.nan 
-        date_details_data.year = pd.to_numeric(date_details_data.year, errors='coerce')
-
-        # (4) day
-        pattern = r'^\d{1,2}$'
-        date_details_data.loc[~date_details_data['day'].str.match(pattern), 'day'] = np.nan 
-        date_details_data.month = pd.to_numeric(date_details_data.day, errors='coerce')
+        date_events_data.loc[~date_events_data['day'].str.match(pattern), 'day'] = np.nan 
+        date_events_data.month = pd.to_numeric(date_events_data.day, errors='coerce')
 
 
-        # (5) time_period
+        # (5) time_period: Filter out incorrect time_periods and set to string
         time_periods = ['Evening', 'Morning', 'Midday', 'Late_Hours']
-        date_details_data.loc[~date_details_data['time_period'].isin(time_periods), 'time_period'] = np.nan
-        date_details_data.time_period = date_details_data.time_period.astype('string')
+        date_events_data.loc[~date_events_data['time_period'].isin(time_periods), 'time_period'] = np.nan
+        date_events_data.time_period = date_events_data.time_period.astype('string')
 
-        # (6) date_uuid
+        # (6) date_uuid: Remove incorrect date_uuids and set to string type
         pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-        date_details_data.loc[~date_details_data['date_uuid'].str.match(pattern), 'date_uuid'] = np.nan
-        date_details_data.date_uuid = date_details_data.date_uuid.astype('string')
+        date_events_data.loc[~date_events_data['date_uuid'].str.match(pattern), 'date_uuid'] = np.nan
+        date_events_data.date_uuid = date_events_data.date_uuid.astype('string')
 
-        return date_details_data
+        return date_events_data
+    
+if __name__ == "__main__":
+    pass
