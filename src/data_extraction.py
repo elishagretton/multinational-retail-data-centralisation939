@@ -16,7 +16,7 @@ class DataExtractor():
         """
         Initializes the DataExtractor instance.
         """
-        self.db_connector = DatabaseConnector('../db_creds.yaml')
+        self.db_connector = DatabaseConnector('../../db_creds.yaml')
         self.db_engine = self.db_connector.db_engine
         self.db_creds = self.db_connector.db_creds
 
@@ -46,6 +46,7 @@ class DataExtractor():
         pdf_pages = tabula.read_pdf(pdf_link, pages='all')
         pdf_data = pd.concat(pdf_pages, ignore_index=True)        
         return pdf_data
+ 
     
     def list_number_of_stores(self, number_of_stores_endpoint, header):
         """
