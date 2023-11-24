@@ -10,7 +10,6 @@
 +------------------------+-------------------+--------------------+
 */
 SELECT * FROM dim_card_details;
-SELECT * FROM dim_card_details WHERE card_number = '4252720361802860591';
 
 ALTER TABLE dim_card_details
 ALTER COLUMN card_number TYPE VARCHAR(22);

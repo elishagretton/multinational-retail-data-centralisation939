@@ -1,5 +1,5 @@
-
 -- Querying dim_date_times
+
 /* Cast columns to types */
 SELECT * FROM dim_date_times;
 
