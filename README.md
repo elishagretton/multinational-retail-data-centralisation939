@@ -22,6 +22,12 @@ With this project, we learn:
 2. How to clean data effectively by considering NULL values, duplicates, valid data types, incorrectly typed values, wrong information, and formatting.
 3. How to organise code effectively into suitable classes to connect, extract, and clean data.
 4. How to query the data using pgAdmin 4 to cast data types, manipulate the tables, and set primary and foreign keys.
+5. How to query the data using pgAdmin 4 to generate insights such as:
+
+- Which locations have the most stores?
+- Which month produced the largest number of sales?
+- How many sales are coming from online?
+- What percentage of sales come through each type of store?
 
 ## Installation instructions
 
