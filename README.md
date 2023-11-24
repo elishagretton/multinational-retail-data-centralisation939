@@ -73,18 +73,8 @@ python data_extraction.py
 
 To view the tasks from the Software Engineering bootcamp, the tasks are split into preprocessing and queries sections.
 
-- The preprocessing folder contains .ipynb files that connect, extract, clean each data source (card_details, dates, orders, products, store_details, and users), and upload to a table in pgAdmin 4.
-- The queries folders contains .sql files that query each table.
-
-```bash
-cd tasks
-# To view preprocessing example
-cd preprocessing
-python card_details.ipynb
-
-# To view queries example
-cd queries
-```
+- The `preprocessing` folder contains a .ipynb files that connect, extract, clean each data source (card_details, dates, orders, products, store_details, and users), and upload to a table in pgAdmin 4.
+- The `queries` folders contains a `database_schema` folder that contains individual .sql files to create the schema. There is also a `data_insights.sql` file which interrogates the data and generates insights.
 
 ## Usage instructions
 
@@ -93,7 +83,9 @@ Please follow above instruction on how to install the project.
 In order to use the project, please refer to the `tasks` directory. This contains a `preprocessing` and `queries` section that cover specific tasks related to this project.
 
 There are 5 data sources: `card_details`, `dates`, `orders`, `products`, `store_details`, and `users`.
-Please run the corresponding .ipynb files found in `preprocessing` folder to extract, clean, and upload the data to SQL. Following this, please head to the corresponding .sql file found in `queries` folder to query and manipulate the data.
+Please run the corresponding .ipynb files found in `tasks/preprocessing` folder to extract, clean, and upload the data to SQL.
+Following this, please head to `tasks/queries/database_schema` to query and manipulate the data.
+To generate insights from the tables, go to `tasks/queries/data_insights.sql`.
 
 ## File structure
 
@@ -114,13 +106,15 @@ The project is structured as follows:
     - `products.ipynb`
     - `store_details.ipynb`
     - `orders.ipynb`
-  - **/queries**: Includes .sql files to query the data (cast new types, manipulate tables, and set primary and foreign keys.)
-    - `card_details.sql`
-    - `dates.sql`
-    - `orders.sql`
-    - `products.sql`
-    - `store_details.sql`
-    - `orders.sql`
+  - **/queries**: Includes creation of database schema and data insights.
+    - **/database_schema**: Individual .sql files to query the data (cast new types, manipulate tables, and set primary and foreign keys.)
+      - `card_details.sql`
+      - `dates.sql`
+      - `orders.sql`
+      - `products.sql`
+      - `store_details.sql`
+      - `orders.sql`
+    - `data_insights.sql`: SQL file that generates insights from the data tables.
 
 - **.gitignore**: Specifies files and directories to ignore in version control.
 
