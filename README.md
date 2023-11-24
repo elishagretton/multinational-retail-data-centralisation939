@@ -18,10 +18,10 @@ In this project, sales data is collected and extracted from multiple sources. Th
 
 With this project, we learn:
 
-1. How to connect and extract data from multiple sources e.g. a csv file, a PDF, an S3 Bucket, and an API.
+1. How to connect and extract data from multiple sources e.g. a csv file, a PDF, an S3 Bucket, an API, and a json file.
 2. How to clean data effectively by considering NULL values, duplicates, valid data types, incorrectly typed values, wrong information, and formatting.
 3. How to organise code effectively into suitable classes to connect, extract, and clean data.
-4. This list will continue growing as I complete the project!
+4. How to query the data using pgAdmin 4 to cast data types, manipulate the tables, and set primary and foreign keys.
 
 ## Installation instructions
 
@@ -34,7 +34,7 @@ git clone https://github.com/elishagretton/multinational-retail-data-centralisat
 cd multinational-retail-data-centralisation939
 ```
 
-### 2. Set up a virtual environment (optional)
+### 2. Set up a virtual environment
 
 ```bash
 # On Unix or MacOS
@@ -44,7 +44,7 @@ python3 -m venv venv
 python -m venv venv
 ```
 
-### 3. Activate the virtual environment.
+### 3. Activate the virtual environment
 
 ```bash
 # On Unix or MacOS
@@ -71,18 +71,29 @@ python data_cleaning.py
 python data_extraction.py
 ```
 
-To view the tasks from the Software Engineering bootcamp, run below
+To view the tasks from the Software Engineering bootcamp, the tasks are split into preprocessing and queries sections.
+
+- The preprocessing folder contains .ipynb files that connect, extract, clean each data source (card_details, dates, orders, products, store_details, and users), and upload to a table in pgAdmin 4.
+- The queries folders contains .sql files that query each table.
 
 ```bash
 cd tasks
-python tasks.ipynb
+# To view preprocessing example
+cd preprocessing
+python card_details.ipynb
+
+# To view queries example
+cd queries
 ```
 
 ## Usage instructions
 
 Please follow above instruction on how to install the project.
 
-In order to use the project, please refer to the `tasks` directory. This contains a Jupyter Notebook (`tasks.ipynb`) that covers specific tasks related to this project. You can find detailed explanations and solutions for these tasks in the notebook [here](tasks/tasks.ipynb).
+In order to use the project, please refer to the `tasks` directory. This contains a `preprocessing` and `queries` section that cover specific tasks related to this project.
+
+There are 5 data sources: `card_details`, `dates`, `orders`, `products`, `store_details`, and `users`.
+Please run the corresponding .ipynb files found in `preprocessing` folder to extract, clean, and upload the data to SQL. Following this, please head to the corresponding .sql file found in `queries` folder to query and manipulate the data.
 
 ## File structure
 
@@ -96,7 +107,20 @@ The project is structured as follows:
 
 - **/tasks**: Includes task files.
 
-  - `tasks.ipynb`: Jupyter Notebook for testing and completing the tasks given in this project provided by Software Engineering Bootcamp with AiCore.
+  - **/preprocessing**: Includes .ipynb preprocessing files that extract, clean, and upload tables to SQL.
+    - `card_details.ipynb`
+    - `dates.ipynb`
+    - `orders.ipynb`
+    - `products.ipynb`
+    - `store_details.ipynb`
+    - `orders.ipynb`
+  - **/queries**: Includes .sql files to query the data (cast new types, manipulate tables, and set primary and foreign keys.)
+    - `card_details.sql`
+    - `dates.sql`
+    - `orders.sql`
+    - `products.sql`
+    - `store_details.sql`
+    - `orders.sql`
 
 - **.gitignore**: Specifies files and directories to ignore in version control.
 
