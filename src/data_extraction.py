@@ -4,7 +4,8 @@ import pandas as pd
 import requests
 import tabula
 
-
+#TODO: Any variables which could be private information i.e. API Keys, URL endpoints, Database credentials
+# Must be stored within .env files or equivilent & not hard coded into your repos
 header = {'x-api-key' : 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}
 
 class DataExtractor():
@@ -13,9 +14,11 @@ class DataExtractor():
     e.g. CSV fies, API, S3 bucket.
     """
     def __init__(self):
+        #NOTE: Lovely simple constructor to create instance attributes needed for the extractor
         """
         Initializes the DataExtractor instance.
         """
+        #NOTE: very subtle but your path on line 22 shows off your ability to navigate filesystems
         self.db_connector = DatabaseConnector('../../db_creds.yaml')
         self.db_engine = self.db_connector.db_engine
         self.db_creds = self.db_connector.db_creds
@@ -30,6 +33,7 @@ class DataExtractor():
         Returns:
         - table_data (pandas DataFrame): Data from the specified table.
         """
+        #NOTE: setting index here is great to see for uniformally structuring your tables
         table_data = pd.read_sql_table(table_name, self.db_engine).set_index('index')
         return table_data
     
@@ -59,6 +63,7 @@ class DataExtractor():
         Returns:
         - number_of_stores (int): Number of stores in the data.
         """
+        #NOTE: I love the exception handling here!
         response = requests.get(number_of_stores_endpoint, headers=header)
         if response.status_code == 200:
             data = response.json()
@@ -103,6 +108,7 @@ class DataExtractor():
         Returns:
         - product_data (pandas DataFrame): Data from the CSV file.
         """
+        #NOTE: Verifying s3 string here is such a nice touch!!!!!
         # Check valid s3 address
         if not s3_address.startswith('s3://'):
             raise ValueError("Invalid S3 address format. It should start with 's3://'")
@@ -124,6 +130,8 @@ class DataExtractor():
         data = response['Body']
 
         # Convert the CSV data to a Pandas DataFrame and remove duplicate index column.
+        #NOTE: Perfect time to reset index, if we wanted to focus on reusability we could run a check for
+        #Unnamed: 0 to exist then reset, but if it doesn't then continue
         product_data = pd.read_csv(data, index_col='Unnamed: 0').reset_index(drop=True)
         return product_data
     def extract_from_json(self, path):

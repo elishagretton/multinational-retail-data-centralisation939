@@ -1,0 +1,17 @@
+Overall:
+
+This is an absolutely brilliant project, all code has been documented correctly, code is clear & consise. Exceptions have been
+handeled throughout your classes, the ipynb notebooks allow views to see the effects of your cleaning operations. 
+Its clear you have put alot of thought into the structure of this project with lots of nice details throughout which I have
+added #NOTE above to make comments on them! On a side not also including a requirements.txt is a lovely final touch!
+
+README: This README is near perfect. You have clearly outlined the aims of the project as an industry application.
+alongside that your installation instructions are clear & show an keen understanding of software development.
+The only portions to add here:
+    - A list of key tools used: when employers view this project immediately you can advertise your tech-stack even 
+    before they've viewed the project in detail
+    - At the moment your SQL Query results cannot be seen by users, you should include these in the README or in a seperate
+    file, this could be either a document or a .ipynb
+
+SQL: All of you SQL table alterations are neatly organised based on table, the queries are all perfect & jusst need the added 
+outputs featured.

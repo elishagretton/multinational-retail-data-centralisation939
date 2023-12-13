@@ -3,6 +3,11 @@ from src.database_utils import DatabaseConnector
 import pandas as pd
 import numpy as np
 import ast
+#TODO: Quick check to remove unused imports
+
+#TODO: Quite a few of these methods do not require self as they function as helper methods for 
+# cleaning specific columns, we could either make a helper function class or turn these into
+#@staticmethods
 
 class DataCleaning():
     """
@@ -16,6 +21,8 @@ class DataCleaning():
         self.db_connector = DatabaseConnector('../../db_creds.yaml')
         self.db_extractor = DataExtractor()
 
+    #NOTE: Again your commitment to performing checks like this method is brilliant &
+    #will be a part interviewers will pick up on!
     def _check_input_is_pd(self,data):
         """
         Checks if the input is a pandas DataFrame.
@@ -23,6 +30,8 @@ class DataCleaning():
         if not isinstance(data, pd.DataFrame):
             raise ValueError("Input data must be a pandas DataFrame.")  
         
+    #TODO: Very nitpicky but these are protected methods at the moment, you just need to double
+    # underscore them    
     # Private Methods involved in data cleaning of dataframes. 
     def _clean_addresses(self, df):
         """
@@ -34,6 +43,7 @@ class DataCleaning():
         df.loc[~df['address'].str.contains('\n', na=False), 'address'] = np.nan
 
     def _clean_card_numbers(self,df):
+        #NOTE: Great to see regex being used here!
         """
         Clean card_number by setting to string, replacing '?', and removing strings containing letters.
 
@@ -53,6 +63,7 @@ class DataCleaning():
         - column_name (str): column containing categories to be cleaned.
         - categories (arr): categories that are valid in the column.
         """
+        #NOTE: perfect usage of ~df, not many students do this!
         df.loc[~df[column_name].isin(categories), column_name] = np.nan
         df[column_name] = df[column_name].astype('string')
 
@@ -78,6 +89,7 @@ class DataCleaning():
         Parameters:
         - df (pd.DataFrame): dataframe containing country_code column to be cleaned.
         """
+        #NOTE: Love converting invalid country_codes into np.nan
         df.country_code = df.country_code.replace('GGB', 'GB')
         df.loc[df.country_code.str.len() > 2, 'country_code'] = np.nan
         df.country_code = df.country_code.astype('string')
@@ -90,6 +102,7 @@ class DataCleaning():
         - df (pd.DataFrame): dataframe containing columns to be cleaned.
         - columns (arr): array of column names to be cleaned.
         """
+        #NOTE: YES, Thank you for having a reusable method for cleaning datatimes!!!!!!
         for column_name in columns:
             df[column_name] = pd.to_datetime(df[column_name], format='mixed', errors='coerce')
             df[column_name] = df[column_name].dt.strftime('%Y-%m-%d')
@@ -101,6 +114,7 @@ class DataCleaning():
         Parameters:
         - df (pd.DataFrame): dataframe containing email_address column to be cleaned.
         """
+        #NOTE: Lovely regex again!
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         df.loc[~df['email_address'].str.match(email_pattern), 'email_address'] = np.nan
         df.email_address = df.email_address.astype('string')
@@ -163,6 +177,8 @@ class DataCleaning():
         """
         Converts product weights in the provided products_data DataFrame to a consistent format.
         """
+        #NOTE: This is a brilliant way to deal with the weight conversions, I would just be careful
+        #of the reusability of line 188
         replacements = {
             'kg': '',
             'g': '/1000',
@@ -188,6 +204,7 @@ class DataCleaning():
         Parameters:
         - df (pd.DataFrame): dataframe containing staff_number column to be cleaned.
         """
+        #TODO: Here we should remove non-numeric chars, this line is not reusable at the moment
         df['staff_numbers'] = df['staff_numbers'].replace({'J78': '78', '30e': '30', '80R': '80', 'A97': '97', '3n9': '39'})
         df['staff_numbers'] = pd.to_numeric(df['staff_numbers'], errors='coerce').fillna(0).astype(int)
     
@@ -229,6 +246,7 @@ class DataCleaning():
             df.loc[~df[column_name].str.match(uuid_pattern), column_name] = np.nan
    
     # Public Methods to clean whole dataframes below
+    #NOTE: Love the containrisation of all cleaning methods into overarching methods here!
     def clean_card_data(self, card_data):
         """
         Cleans the provided card_data DataFrame and returns the cleaned DataFrame.
@@ -247,6 +265,7 @@ class DataCleaning():
         return card_data
         
     def clean_date_data(self, date_events_data):
+        #NOTE: Most dont catch & clean this much data, truly an exceptional project!
         """
         Cleans the provided date_events_data DataFrame and returns the cleaned DataFrame.
         """
@@ -271,6 +290,7 @@ class DataCleaning():
 
         self._clean_card_numbers(orders_data)
         self._clean_product_codes(orders_data)
+        #NOTE: Perfect way to standerdise the data!
         orders_data.product_quantity = pd.to_numeric(orders_data.product_quantity, errors='coerce', downcast='integer')
         self._clean_store_codes(orders_data)
         self._clean_uuids(orders_data, ['date_uuid', 'user_uuid'])

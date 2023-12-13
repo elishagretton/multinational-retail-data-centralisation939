@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, inspect
 import yaml
 
+#NOTE: This class is perfect, methods all have docstrings, correct casings & descriptive variable names
 class DatabaseConnector():
     """
     This class connects to a PostgreSQL database and provides methods to interact with it.
@@ -16,6 +17,7 @@ class DatabaseConnector():
         Parameters:
         - file_path (str): Path to the YAML file containing database credentials.
         """  
+        #NOTE: Love the automation here to create engine on instance creation!
         self.file_path = file_path
         self.db_creds = self.read_db_creds()
         self.db_engine = self.init_db_engine()
@@ -39,6 +41,7 @@ class DatabaseConnector():
         - sqlalchemy.engine.base.Engine: Database engine.
         """
         database_url = (
+        #NOTE: Great attention to detail with max characters per line PEP-8 guidence
         f"postgresql://{self.db_creds['RDS_USER']}:{self.db_creds['RDS_PASSWORD']}"
         f"@{self.db_creds['RDS_HOST']}:{self.db_creds['RDS_PORT']}/{self.db_creds['RDS_DATABASE']}"
         )
