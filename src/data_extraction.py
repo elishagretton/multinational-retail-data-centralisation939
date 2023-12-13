@@ -1,12 +1,14 @@
-from src.database_utils import DatabaseConnector
+from database_utils import DatabaseConnector
 import boto3
 import pandas as pd
 import requests
 import tabula
+import os
+from dotenv import load_dotenv
 
-#TODO: Any variables which could be private information i.e. API Keys, URL endpoints, Database credentials
+#RESOLVED: Any variables which could be private information i.e. API Keys, URL endpoints, Database credentials
 # Must be stored within .env files or equivilent & not hard coded into your repos
-header = {'x-api-key' : 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'}
+#TODO: Check classes that use get_api_header() function and run store_details.ipynb
 
 class DataExtractor():
     """
@@ -19,7 +21,7 @@ class DataExtractor():
         Initializes the DataExtractor instance.
         """
         #NOTE: very subtle but your path on line 22 shows off your ability to navigate filesystems
-        self.db_connector = DatabaseConnector('../../db_creds.yaml')
+        self.db_connector = DatabaseConnector('../db_creds.yaml')
         self.db_engine = self.db_connector.db_engine
         self.db_creds = self.db_connector.db_creds
 
@@ -50,20 +52,31 @@ class DataExtractor():
         pdf_pages = tabula.read_pdf(pdf_link, pages='all')
         pdf_data = pd.concat(pdf_pages, ignore_index=True)        
         return pdf_data
- 
+    @staticmethod
+    def __get_api_header(self):
+        """
+        Retrieves API key for store_data
+        """
+        load_dotenv()
+        api_key = os.getenv("API_KEY")
+        if api_key is None:
+            raise ValueError("API_KEY not found in the environment variables.")
+        header = {'x-api-key' : api_key}
+        return header
     
-    def list_number_of_stores(self, number_of_stores_endpoint, header):
+    def list_number_of_stores(self, number_of_stores_endpoint):
         """
         Returns the number of stores in the data from the API endpoint.
         
         Parameters:
         - number_of_stores_endpoint (str): Endpoint URL for API.
-        - header (dict): Credentials to connect to the API.
         
         Returns:
         - number_of_stores (int): Number of stores in the data.
         """
         #NOTE: I love the exception handling here!
+        #TODO: CHECK THIS STATIC METHOD WORKS?? can it be private as well as static? Not sure.
+        header = DataExtractor.__get_api_header()
         response = requests.get(number_of_stores_endpoint, headers=header)
         if response.status_code == 200:
             data = response.json()
@@ -75,18 +88,18 @@ class DataExtractor():
             print(f'Request failed with status code: {response.status_code}')
             print(f'Response Text: { response.text}')
 
-    def retrieve_stores_data(self, store_endpoint, number_of_stores, header):
+    def retrieve_stores_data(self, store_endpoint, number_of_stores):
         """
         Retrieves data for each store from the API endpoint and returns it as a pandas DataFrame.
 
         Parameters:
         - store_endpoint (str): Base endpoint URL for individual store data.
         - number_of_stores (int): Number of stores to retrieve data for.
-        - header (dict): Credentials to connect to the API.
 
         Returns:
         - store_data (pandas DataFrame): Combined data for all stores.
         """
+        header = self.get_api_header()
         all_store_data = []
         for store_number in range(number_of_stores):
             response = requests.get(f'{store_endpoint}{store_number}', headers=header)
@@ -147,5 +160,7 @@ class DataExtractor():
         return pd.read_json(path)
     
 if __name__ == "__main__":
+    extractor = DataExtractor()
+    print(extractor.get_api_header())
     pass
  
