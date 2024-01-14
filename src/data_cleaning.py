@@ -22,7 +22,8 @@ class DataCleaning():
 
     #NOTE: Again your commitment to performing checks like this method is brilliant &
     #will be a part interviewers will pick up on!
-    def _check_input_is_pd(self,data):
+    @staticmethod
+    def __check_input_is_pd(self,data):
         """
         Checks if the input is a pandas DataFrame.
         """
@@ -49,7 +50,7 @@ class DataCleaning():
         Parameters:
         - df (pd.DataFrame): dataframe containing card_number column to be cleaned.
         """
-        df['card_number']=df['card_number'].astype('string')
+        df['card_number'] = df['card_number'].astype('string')
         df['card_number'] = df['card_number'].str.replace('?', '')
         df['card_number'] = df['card_number'].where(df['card_number'].str.contains(r'^\d+$'), np.nan)
     
@@ -250,7 +251,7 @@ class DataCleaning():
         """
         Cleans the provided card_data DataFrame and returns the cleaned DataFrame.
         """
-        self._check_input_is_pd(card_data)
+        self.__check_input_is_pd(card_data)
         card_data = card_data.dropna().drop_duplicates()
 
         self._clean_categories(card_data, 'card_provider', 
@@ -268,7 +269,7 @@ class DataCleaning():
         """
         Cleans the provided date_events_data DataFrame and returns the cleaned DataFrame.
         """
-        self._check_input_is_pd(date_events_data)
+        self.__check_input_is_pd(date_events_data)
         date_events_data = date_events_data.dropna().drop_duplicates()
 
         self._clean_categories(date_events_data, 'time_period',
@@ -283,7 +284,7 @@ class DataCleaning():
         """
         Cleans the provided orders_data DataFrame and returns the cleaned DataFrame.
         """
-        self._check_input_is_pd(orders_data)
+        self.__check_input_is_pd(orders_data)
         orders_data = orders_data.drop(columns=['level_0', 'first_name', 'last_name', '1'])
         orders_data = orders_data.drop_duplicates().dropna()
 
@@ -299,23 +300,23 @@ class DataCleaning():
         """
         Cleans the provided products_data DataFrame and returns the cleaned DataFrame.
         """
-        self._check_input_is_pd(products_data)
+        self.__check_input_is_pd(products_data)
         products_data = products_data.dropna().drop_duplicates()
 
-        self._clean_dates(products_data, ['date_added'])
-        self._clean_number_data(products_data, ['EAN'])
-        self._clean_product_codes(products_data)
-        self._clean_product_price(products_data)
-        self._clean_product_weights(products_data)
+        self.__clean_dates(products_data, ['date_added'])
+        self.__clean_number_data(products_data, ['EAN'])
+        self.__clean_product_codes(products_data)
+        self.__clean_product_price(products_data)
+        self.__clean_product_weights(products_data)
         products_data.product_name = products_data.product_name.astype('string')
-        self._clean_uuids(products_data, ['uuid'])
-        self._clean_categories(products_data, 
+        self.__clean_uuids(products_data, ['uuid'])
+        self.__clean_categories(products_data, 
                                column_name = 'category', 
                                categories = ['toys-and-games', 'sports-and-leisure', 'pets', 'homeware', 'health-and-beauty',
                             'food-and-drink', 'diy'])
         
         products_data.removed = products_data.removed.replace('Still_avaliable', 'still_available')
-        self._clean_categories(products_data, 
+        self.__clean_categories(products_data, 
                                column_name='removed', 
                                categories=['still_available', 'Removed'])
 
@@ -325,19 +326,19 @@ class DataCleaning():
         """
         Cleans the provided store_data DataFrame and returns the cleaned DataFrame.
         """
-        self._check_input_is_pd(store_data)
+        self.__check_input_is_pd(store_data)
         store_data = store_data.drop(columns=['index','lat'])
         store_data = store_data.drop_duplicates()
 
-        self._clean_addresses(store_data)
-        self._clean_categories(store_data, 'store_type', categories = ['Web Portal', 'Local', 'Super Store', 'Mall Kiosk', 'Outlet'])
-        self._clean_continents(store_data)        
-        self._clean_country_code(store_data)
-        self._clean_dates(store_data, ['opening_date'])
-        self._clean_number_data(store_data, ['longitude', 'latitude'])
-        self._clean_staff_numbers(store_data)
-        self._clean_store_codes(store_data)
-        self._clean_string_data(store_data, ['locality'])
+        self.__clean_addresses(store_data)
+        self.__clean_categories(store_data, 'store_type', categories = ['Web Portal', 'Local', 'Super Store', 'Mall Kiosk', 'Outlet'])
+        self.__clean_continents(store_data)        
+        self.__clean_country_code(store_data)
+        self.__clean_dates(store_data, ['opening_date'])
+        self.__clean_number_data(store_data, ['longitude', 'latitude'])
+        self.__clean_staff_numbers(store_data)
+        self.__clean_store_codes(store_data)
+        self.__clean_string_data(store_data, ['locality'])
 
         return store_data
     
@@ -345,16 +346,16 @@ class DataCleaning():
         """
         Cleans the provided user_data DataFrame and returns the cleaned DataFrame.
         """
-        self._check_input_is_pd(user_data)
+        self.__check_input_is_pd(user_data)
         user_data = user_data.dropna().drop_duplicates()
 
-        self._clean_addresses(user_data)
-        self._clean_country_code(user_data)
-        self._clean_dates(user_data, ['join_date', 'date_of_birth']) 
-        self._clean_email_addresses(user_data) 
-        self._clean_phone_numbers(user_data)
-        self._clean_string_data(user_data,['first_name', 'last_name', 'company','country'])
-        self._clean_uuids(user_data, ['user_uuid'])
+        self.__clean_addresses(user_data)
+        self.__clean_country_code(user_data)
+        self.__clean_dates(user_data, ['join_date', 'date_of_birth']) 
+        self.__clean_email_addresses(user_data) 
+        self.__clean_phone_numbers(user_data)
+        self.__clean_string_data(user_data,['first_name', 'last_name', 'company','country'])
+        self.__clean_uuids(user_data, ['user_uuid'])
         return user_data
 
 if __name__ == "__main__":
