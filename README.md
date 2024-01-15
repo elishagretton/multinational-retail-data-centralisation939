@@ -317,6 +317,26 @@ The `queries` folders also contains a `data_insights.sql` file which interrogate
 
 Upload the file into pgadmin and run.
 
+## Query Results
+
+#### Task 1: How many stores does the business have and what countries do they operate in?
+
+```sql
+SELECT
+    country_code,
+    COUNT(*) AS total_no_stores
+FROM
+    dim_store_details
+WHERE
+    country_code IN ('GB', 'DE', 'US')
+GROUP BY
+    country_code
+ORDER BY
+    total_no_stores DESC;
+```
+
+Results:
+
 ## License Information
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
