@@ -23,7 +23,7 @@ class DataCleaning():
     #NOTE: Again your commitment to performing checks like this method is brilliant &
     #will be a part interviewers will pick up on!
     @staticmethod
-    def __check_input_is_pd(self,data):
+    def __check_input_is_pd(self, data):
         """
         Checks if the input is a pandas DataFrame.
         """
