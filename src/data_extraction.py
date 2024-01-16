@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 
 #RESOLVED: Any variables which could be private information i.e. API Keys, URL endpoints, Database credentials
 # Must be stored within .env files or equivilent & not hard coded into your repos
-#TODO: Check classes that use get_api_header() function and run store_details.ipynb
 
 class DataExtractor():
     """
