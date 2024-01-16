@@ -105,13 +105,7 @@ ORDER BY
 LIMIT 10;
 
 -- Task 7: What is our staff headcount?
-/* TO FIX: 
-- 325 are NULL
-- when I went back to the code and extracted original data
-- and did store_data.country_code.unique(): I got 'GB', 'DE', 'US', 'NULL' and other long strings that are not GB
-- no occurence of 'GGB' even though I replaced this to 'GB' in data_cleaning code...
-- not sure if extracting data wrong here?
-*/
+
 SELECT
     SUM(staff_numbers) AS total_staff_numbers,
     country_code as country_code

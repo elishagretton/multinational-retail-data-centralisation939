@@ -27,7 +27,7 @@ ALTER TABLE dim_store_details
 ALTER COLUMN store_code TYPE VARCHAR(12);
 
 ALTER TABLE dim_store_details
-ALTER COLUMN staff_numbers TYPE SMALLINT USING staff_numbers::SMALLINT;
+ALTER COLUMN staff_numbers TYPE SMALLINT USING NULLIF(staff_numbers, '')::SMALLINT;
 
 ALTER TABLE dim_store_details
 ALTER COLUMN opening_date TYPE DATE USING opening_date::date;
@@ -72,3 +72,5 @@ ALTER TABLE orders_table
 ADD CONSTRAINT fk_orders_store_details
 FOREIGN KEY (store_code)
 REFERENCES dim_store_details (store_code);
+
+SELECT * FROM dim_store_details;
