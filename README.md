@@ -243,19 +243,15 @@ pip install -r requirements.txt
 
 ### Connect to the local database using pgAdmin4
 
-pgAdmin is used to connect to the local database. With pgAdmin installed and running, follow these steps to connect:
+pgAdmin is used to connect to the local database. With pgAdmin installed and running, we create a database to upload the data to with these steps:
 
-#### 1. On the main application page, click on 'Add New Server'
+#### 1. On the main application page, right click on Databases. Select Create -> Database.
 
-![Add New Server](images/Add_server.png)
+![Create database](images/Create_database.png)
 
 #### 2. On the 'General' tab of the dialogue that appears, enter a name for the new server connection
 
-![Create Server Name](images/Create_server_name.png)
-
-#### 3. On the 'Connection' tab, enter 'localhost' for the 'Host name/address', and enter the username and password specified when creating the database.
-
-![Enter Credentials](images/Enter_credentials.png)
+![Create Database Name](images/Create_database_name.png)
 
 ## File structure
 
