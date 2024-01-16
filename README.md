@@ -17,7 +17,7 @@
   - [Connect, extract, and clean the data](#1-connect-extract-and-clean-the-data)
   - [Create database schema](#2-create-database-schema)
   - [Query the data in pgadmin4 to generate insights](#3-query-the-data-in-pgadmin4-to-generate-insights)
-
+- [Query Results](#query-results)
 - [License Information](#license-information)
 
 ## Project Brief
@@ -331,7 +331,280 @@ ORDER BY
     total_no_stores DESC;
 ```
 
-Results:
+**Results:**
+
+| country_code | total_no_stores |
+| -------- | -------- | 
+|GB | 265 |
+| DE | 141 | 
+| US | 34 | 
+
+There are 265 stores in Great Britain, 141 in Germany, and 34 in America.
+
+#### Task 2: Which locations have the most stores?
+
+```sql
+SELECT
+    locality,
+    COUNT(*) AS total_no_of_stores
+FROM
+    dim_store_details
+GROUP BY
+    locality
+ORDER BY
+    total_no_of_stores DESC
+LIMIT 7;
+```
+
+**Results:**
+
+| locality | total_no_stores |
+| -------- | -------- | 
+|Chapletown | 14 |
+| Belper | 13 | 
+| Bushey | 12 | 
+| Exeter | 11 | 
+| High Wycombe | 10 | 
+| Rutherglen | 10 | 
+| Arbroath | 10 | 
+
+In the table above, it shows the top 7 locations with the most stores. The town with the most stores is Chapletown with a total of 14.
+
+#### Task 3: Which month produced the largest number of sales?
+
+```sql
+SELECT 
+    ROUND(SUM(orders_table.product_quantity * dim_products.product_price)::numeric, 2) AS total_sales,
+    dim_date_times.month
+FROM 
+    orders_table
+JOIN 
+    dim_products ON orders_table.product_code = dim_products.product_code
+JOIN 
+    dim_date_times ON orders_table.date_uuid = dim_date_times.date_uuid
+GROUP BY
+    dim_date_times.month
+ORDER BY 
+    total_sales DESC
+LIMIT 6;
+```
+
+**Results:**
+
+| total_sales | month |
+| -------- | -------- | 
+|673295.68 | 8.0 |
+| 668041.45	 | 1.0 | 
+| 657335.84 | 10.0 | 
+| 650321.43 | 5.0 | 
+| 645741.70 | 7.0 | 
+| 645463.00	 | 3.0 | 
+
+The month that produced the largest amount of sales was August, with a total of 673295.68 sales.
+
+#### Task 4: How many sales are coming from online?
+
+```sql
+SELECT
+    COUNT(orders_table.product_quantity) AS numbers_of_sales,
+    SUM(orders_table.product_quantity) AS product_quantity_count,
+    CASE
+        WHEN dim_store_details.locality IS NULL THEN 'Web'
+        ELSE 'Offline'
+    END AS location
+FROM
+    orders_table
+JOIN
+    dim_store_details ON orders_table.store_code = dim_store_details.store_code
+GROUP BY
+    location
+ORDER BY
+    numbers_of_sales;
+```
+
+**Results:**
+
+| number_of_sales | product_quantity_count | location |
+| -------- | -------- | -------- | 
+|26957 | 107739 | Web |
+| 93166 | 374047 | Offline |
+
+There is a total of 26957 sales coming from online.
+
+#### Task 5: What percentage of sales come through each type of store?
+
+```sql
+SELECT
+    dim_store_details.store_type AS store_type,
+    ROUND(SUM(orders_table.product_quantity * dim_products.product_price)::numeric, 2) AS total_sales,
+    ROUND((SUM(orders_table.product_quantity * dim_products.product_price) /
+        (SELECT 
+            SUM(orders_table.product_quantity * dim_products.product_price)
+        FROM 
+            orders_table
+        JOIN dim_products ON orders_table.product_code = dim_products.product_code) * 100)::numeric, 2) 
+    AS "percentage_total(%)"
+FROM 
+    orders_table
+JOIN 
+    dim_products ON orders_table.product_code = dim_products.product_code
+JOIN 
+    dim_store_details ON orders_table.store_code = dim_store_details.store_code
+GROUP BY
+    store_type
+ORDER BY
+    "percentage_total(%)" DESC;
+```
+**Results:**
+|store_type|total_sales|percentage_total(%)|
+| -------- | -------- | -------- | 
+| Local |	3440896.52 | 44.56 |
+| Web Portal | 1726547.05	| 22.36
+| Super Store | 1224293.65 | 15.85
+| Mall Kiosk | 698791.61 | 9.05
+| Outlet | 631804.81 | 8.18
+
+- 44.56% of total sales comes from local stores.
+- 22.36% of total sales come from web portal stores.
+- 15.85% of total sales come from super stores.
+- 9.05% of total sales come from mall kiosks.
+- 8.18% of total sales come from outlet stores.
+
+#### Task 6: Which month in each year produced the highest cost of sales?
+
+```sql
+SELECT
+    ROUND(SUM(orders_table.product_quantity * dim_products.product_price)::numeric, 2) AS total_sales,
+    dim_date_times.year AS year,
+    dim_date_times.month AS month
+FROM 
+    orders_table
+JOIN 
+    dim_products ON orders_table.product_code = dim_products.product_code
+JOIN 
+    dim_date_times ON orders_table.date_uuid = dim_date_times.date_uuid
+GROUP BY
+    year, month
+ORDER BY
+    total_sales DESC
+LIMIT 10;
+```
+
+**Results:**
+
+|total_sales|year|month|
+| -------- | -------- | -------- | 
+| 27936.77	| 1994.0 |	3.0|
+| 27356.14	| 2019.0 |	1.0|
+|27091.67	| 2009.0 |	8.0 |
+|26679.98	|1997.0|	11.0|
+|26310.97|2018.0|	12.0|
+|26277.72|2019.0|	8.0|
+|26236.67|2017.0|	9.0|
+|25798.12|2010.0|	5.0|
+|25648.29|1996.0|	8.0|
+|25614.54|2000.0|	1.0|
+
+March produced the highest amount of sales, with a total of 27936.77 sales.
+
+#### Task 7: What is our staff headcount?
+```sql
+SELECT
+    SUM(staff_numbers) AS total_staff_numbers,
+    country_code as country_code
+FROM   
+    dim_store_details
+GROUP BY
+    country_code
+ORDER BY
+    total_staff_numbers DESC;
+```
+
+**Results:**
+
+|total_staff_count|country_code|
+| -------- | -------- |
+| 12982	| GB|
+|6123	|DE|
+|1384	|US|
+|325	| null |
+
+In total, there are 20814 employees across all regions.
+- There are 12982 employees in Great Britain.
+- There are 6123 employees in Germany.
+- There are 1384 employees in America.
+- There are 325 employees with no given country code.
+
+#### Task 8: Which German store type is selling the most?
+
+```sql
+SELECT
+    ROUND(SUM(orders_table.product_quantity * dim_products.product_price)::numeric, 2) AS total_sales,
+    dim_store_details.store_type AS store_type,
+    dim_store_details.country_code AS country_code
+FROM 
+    orders_table
+JOIN 
+    dim_products ON orders_table.product_code = dim_products.product_code
+JOIN 
+    dim_store_details ON orders_table.store_code = dim_store_details.store_code
+WHERE 
+    dim_store_details.country_code = 'DE'
+GROUP BY
+    store_type, country_code 
+ORDER BY
+    total_sales ASC;
+```
+**Results:**
+
+|total_sales|store_type|country_code|
+| -------- | -------- | -------- | 
+| 198373.57|Outlet|DE|
+|247634.20|Mall Kiosk|DE|
+|384625.03|Super Store|DE|
+|1109909.59|Local|DE|
+
+The German store type which is selling the most are local stores. They have the highest total sales of 1109909.59.
+
+#### Task 9: How quickly is the company making sales?
+
+```sql
+WITH sales_date AS (
+    SELECT 
+        year,
+        TO_TIMESTAMP(CONCAT(year, '-', month, '-', day, ' ', timestamp), 'YYYY-MM-DD HH24:MI:SS') AS sales_date_column,
+        LAG(TO_TIMESTAMP(CONCAT(year, '-', month, '-', day, ' ', timestamp), 'YYYY-MM-DD HH24:MI:SS')) OVER (PARTITION BY year ORDER BY TO_TIMESTAMP(CONCAT(year, '-', month, '-', day, ' ', timestamp), 'YYYY-MM-DD HH24:MI:SS')) AS previous_sale_date
+    FROM 
+        dim_date_times
+)
+SELECT 
+    year,
+    '{"hours": ' || EXTRACT(HOUR FROM AVG(sales_date_column - previous_sale_date)) || ', "minutes": ' || EXTRACT(MINUTE FROM AVG(sales_date_column - previous_sale_date)) || ', "seconds": ' || EXTRACT(SECOND FROM AVG(sales_date_column - previous_sale_date)) || ', "milliseconds": ' || EXTRACT(MILLISECOND FROM AVG(sales_date_column - previous_sale_date)) || '}' AS actual_time_taken
+FROM 
+    sales_date
+WHERE 
+    previous_sale_date IS NOT NULL
+GROUP BY 
+    year
+ORDER BY 
+    AVG(sales_date_column - previous_sale_date) DESC
+LIMIT 5;
+```
+
+**Results:**
+|year|actual_time_taken|
+| -------- | -------- |
+| 2013 | "hours": 2, "minutes": 17, "seconds": 12, "millise... |
+| 1993 | "hours": 2, "minutes": 15, "seconds": 35, "millise... |
+| 2002 | "hours": 2, "minutes": 13, "seconds": 50, "millise... | 
+| 2022 | "hours": 2, "minutes": 13, "seconds": 6,  "millise... |
+| 2008 | "hours": 2, "minutes": 13, "seconds": 2,  "millise... |
+ 
+- In 2013, the company made sales in approximately 2hrs 17 minutes 12 seconds.
+- In 1993, the company made sales in approximately 2hrs 15 minutes 35 seconds.
+- In 2002, the company made sales in approximately 2hrs 13 minutes 50 seconds.
+- In 2022, the company made sales in approximately 2hrs 13 minutes 6 seconds.
+- In 2008, the company made sales in approximately 2hrs 13 minutes 2 seconds.
 
 ## License Information
 
