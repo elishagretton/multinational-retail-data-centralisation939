@@ -53,8 +53,8 @@ class DataExtractor():
         pdf_pages = tabula.read_pdf(pdf_link, pages='all')
         pdf_data = pd.concat(pdf_pages, ignore_index=True)        
         return pdf_data
-    @staticmethod
-    def __get_api_header():
+
+    def get_api_header(self):
         """
         Retrieves API key for store_data
         """
@@ -77,7 +77,7 @@ class DataExtractor():
         """
         #NOTE: I love the exception handling here!
         #TODO: CHECK THIS STATIC METHOD WORKS?? can it be private as well as static? Not sure.
-        header = DataExtractor.__get_api_header()
+        header = self.get_api_header()
         response = requests.get(number_of_stores_endpoint, headers=header)
         if response.status_code == 200:
             data = response.json()
