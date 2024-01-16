@@ -1,5 +1,5 @@
-from data_extraction import DataExtractor
-from database_utils import DatabaseConnector
+from src.data_extraction import DataExtractor
+from src.database_utils import DatabaseConnector
 import pandas as pd
 import numpy as np
 #RESOLVED (13/12): Quick check to remove unused imports
@@ -23,7 +23,7 @@ class DataCleaning():
     #NOTE: Again your commitment to performing checks like this method is brilliant &
     #will be a part interviewers will pick up on!
     @staticmethod
-    def __check_input_is_pd(self, data):
+    def __check_input_is_pd(data):
         """
         Checks if the input is a pandas DataFrame.
         """
@@ -251,16 +251,16 @@ class DataCleaning():
         """
         Cleans the provided card_data DataFrame and returns the cleaned DataFrame.
         """
-        self.__check_input_is_pd(card_data)
+        DataCleaning.__check_input_is_pd(card_data)
         card_data = card_data.dropna().drop_duplicates()
 
-        self._clean_categories(card_data, 'card_provider', 
+        self.__clean_categories(card_data, 'card_provider', 
                                categories = ['Diners Club / Carte Blanche', 'American Express', 'JCB 16 digit',
         'JCB 15 digit', 'Maestro', 'Mastercard', 'Discover',
        'VISA 19 digit', 'VISA 16 digit', 'VISA 13 digit'])
-        self._clean_card_numbers(card_data)
-        self._clean_dates(card_data, ['date_payment_confirmed'])
-        self._clean_expiry_dates(card_data)
+        self.__clean_card_numbers(card_data)
+        self.__clean_dates(card_data, ['date_payment_confirmed'])
+        self.__clean_expiry_dates(card_data)
 
         return card_data
         
@@ -269,14 +269,14 @@ class DataCleaning():
         """
         Cleans the provided date_events_data DataFrame and returns the cleaned DataFrame.
         """
-        self.__check_input_is_pd(date_events_data)
+        DataCleaning.__check_input_is_pd(date_events_data)
         date_events_data = date_events_data.dropna().drop_duplicates()
 
-        self._clean_categories(date_events_data, 'time_period',
+        self.__clean_categories(date_events_data, 'time_period',
                                categories=['Evening', 'Morning', 'Midday', 'Late_Hours'])
-        self._clean_number_data(date_events_data, ['year','month','day'])
+        self.___clean_number_data(date_events_data, ['year','month','day'])
         date_events_data.timestamp = pd.to_datetime(date_events_data.timestamp, format='%H:%M:%S', errors='coerce').dt.time
-        self._clean_uuids(date_events_data, ['date_uuid'])
+        self.___clean_uuids(date_events_data, ['date_uuid'])
 
         return date_events_data
     
@@ -284,23 +284,23 @@ class DataCleaning():
         """
         Cleans the provided orders_data DataFrame and returns the cleaned DataFrame.
         """
-        self.__check_input_is_pd(orders_data)
+        DataCleaning.__check_input_is_pd(orders_data)
         orders_data = orders_data.drop(columns=['level_0', 'first_name', 'last_name', '1'])
         orders_data = orders_data.drop_duplicates().dropna()
 
-        self._clean_card_numbers(orders_data)
-        self._clean_product_codes(orders_data)
+        self.__clean_card_numbers(orders_data)
+        self.__clean_product_codes(orders_data)
         #NOTE: Perfect way to standerdise the data!
         orders_data.product_quantity = pd.to_numeric(orders_data.product_quantity, errors='coerce', downcast='integer')
-        self._clean_store_codes(orders_data)
-        self._clean_uuids(orders_data, ['date_uuid', 'user_uuid'])
+        self.__clean_store_codes(orders_data)
+        self.__clean_uuids(orders_data, ['date_uuid', 'user_uuid'])
         return orders_data
 
     def clean_products_data(self, products_data):
         """
         Cleans the provided products_data DataFrame and returns the cleaned DataFrame.
         """
-        self.__check_input_is_pd(products_data)
+        DataCleaning.__check_input_is_pd(products_data)
         products_data = products_data.dropna().drop_duplicates()
 
         self.__clean_dates(products_data, ['date_added'])
@@ -326,7 +326,7 @@ class DataCleaning():
         """
         Cleans the provided store_data DataFrame and returns the cleaned DataFrame.
         """
-        self.__check_input_is_pd(store_data)
+        DataCleaning.__check_input_is_pd(store_data)
         store_data = store_data.drop(columns=['index','lat'])
         store_data = store_data.drop_duplicates()
 
@@ -346,7 +346,7 @@ class DataCleaning():
         """
         Cleans the provided user_data DataFrame and returns the cleaned DataFrame.
         """
-        self.__check_input_is_pd(user_data)
+        DataCleaning.__check_input_is_pd(user_data)
         user_data = user_data.dropna().drop_duplicates()
 
         self.__clean_addresses(user_data)
