@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 import tabula
 import os
+import psycopg2
 from dotenv import load_dotenv
 
 #RESOLVED: Any variables which could be private information i.e. API Keys, URL endpoints, Database credentials
@@ -161,6 +162,5 @@ class DataExtractor():
     
 if __name__ == "__main__":
     extractor = DataExtractor()
-    print(extractor.get_api_header())
     pass
  
