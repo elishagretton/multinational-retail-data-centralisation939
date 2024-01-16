@@ -606,6 +606,12 @@ LIMIT 5;
 - In 2022, the company made sales in approximately 2hrs 13 minutes 6 seconds.
 - In 2008, the company made sales in approximately 2hrs 13 minutes 2 seconds.
 
+## Next Steps
+
+For the future direction of this project, I'd like to learn more about data visualisation tools to represent my findings. 
+
+I would also like to learn more about SQLAlchemy, and if it is possible to run the SQL queries in Python instead of pgadmin4.
+
 ## License Information
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
