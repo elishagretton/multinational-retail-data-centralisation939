@@ -1,4 +1,4 @@
-from database_utils import DatabaseConnector
+from src.database_utils import DatabaseConnector
 import boto3
 import pandas as pd
 import requests
@@ -22,7 +22,7 @@ class DataExtractor():
         Initializes the DataExtractor instance.
         """
         #NOTE: very subtle but your path on line 22 shows off your ability to navigate filesystems
-        self.db_connector = DatabaseConnector('../db_creds.yaml')
+        self.db_connector = DatabaseConnector('/Users/elishagretton/Library/Mobile Documents/com~apple~CloudDocs/AiCore Bootcamp/multinational-retail-data-centralisation939/db_creds.yaml')
         self.db_engine = self.db_connector.db_engine
         self.db_creds = self.db_connector.db_creds
 
@@ -54,7 +54,7 @@ class DataExtractor():
         pdf_data = pd.concat(pdf_pages, ignore_index=True)        
         return pdf_data
     @staticmethod
-    def __get_api_header(self):
+    def __get_api_header():
         """
         Retrieves API key for store_data
         """
