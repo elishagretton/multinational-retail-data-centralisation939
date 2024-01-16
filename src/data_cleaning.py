@@ -1,5 +1,5 @@
-from src.data_extraction import DataExtractor
-from src.database_utils import DatabaseConnector
+from data_extraction import DataExtractor
+from database_utils import DatabaseConnector
 import pandas as pd
 import numpy as np
 #RESOLVED (13/12): Quick check to remove unused imports
