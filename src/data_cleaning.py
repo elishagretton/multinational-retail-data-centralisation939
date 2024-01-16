@@ -69,7 +69,7 @@ class DataCleaning():
 
     def __clean_continents(self, df):
         """
-        Cleans continent column by removing typos and then removing numerical values using _clean_string_data.
+        Cleans continent column by removing typos and then removing numerical values using __clean_string_data.
         
         Parameters
         - df (pd.DataFrame): dataframe containing continent column to be cleaned.
@@ -77,7 +77,7 @@ class DataCleaning():
         df['continent'] = df['continent'].astype('string')
         df.continent = df.continent.replace('eeEurope', 'Europe')
         df.continent = df.continent.replace('eeAmerica', 'America')
-        df = self._clean_string_data(df, ['continent'])
+        df = self.__clean_string_data(df, ['continent'])
     
     def __clean_country_code(self, df):
         """
@@ -274,9 +274,9 @@ class DataCleaning():
 
         self.__clean_categories(date_events_data, 'time_period',
                                categories=['Evening', 'Morning', 'Midday', 'Late_Hours'])
-        self.___clean_number_data(date_events_data, ['year','month','day'])
+        self.__clean_number_data(date_events_data, ['year','month','day'])
         date_events_data.timestamp = pd.to_datetime(date_events_data.timestamp, format='%H:%M:%S', errors='coerce').dt.time
-        self.___clean_uuids(date_events_data, ['date_uuid'])
+        self.__clean_uuids(date_events_data, ['date_uuid'])
 
         return date_events_data
     
