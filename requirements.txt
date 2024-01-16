@@ -7,3 +7,4 @@ PyYAML==6.0
 boto3==1.18.25
 requests==2.26.0
 tabula-py==2.2.0
+python-dotenv==1.0.0
